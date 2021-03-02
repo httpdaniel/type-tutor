@@ -11,6 +11,9 @@ function Navbar() {
         <Link to="/register">
           <li>Register</li>
         </Link>
+        <Link to="/profile">
+          <li>Profile</li>
+        </Link>
         <Link to="/">
           <li>Home</li>
         </Link>
