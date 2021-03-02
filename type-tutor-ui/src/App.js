@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import Login from './scenes/Login';
 import Register from './scenes/Register';
 import MainPage from './scenes/MainPage';
+import Profile from './scenes/Profile';
 import Navbar from './components/Navbar';
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
         <Switch>
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
+          <Route path="/profile" component={Profile} />
           <Route path="/" exact component={MainPage} />
         </Switch>
       </div>
