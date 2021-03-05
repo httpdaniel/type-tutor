@@ -1,9 +1,7 @@
 import React from 'react';
 import '../styles/App.scss';
 import { Link } from 'react-router-dom';
-import {
-  AppBar, Toolbar, Typography,
-} from '@material-ui/core';
+import { AppBar, Toolbar, Typography } from '@material-ui/core';
 
 function Navbar() {
   return (
