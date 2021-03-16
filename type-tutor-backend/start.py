@@ -30,6 +30,7 @@ import mysql.connector
 from mysql.connector import Error
 import jwt
 from datetime import datetime, timedelta
+import models.models
 
 app = Flask(__name__)
 
@@ -42,6 +43,7 @@ def login():
     
     email = request_data.get("email")
     password = str.encode(request_data.get("password"))
+    print(email)
     print(password)
     database_connection = None
     database_cursor = None
@@ -57,7 +59,7 @@ def login():
             database_cursor.execute("select * from Users where email = %s;", (email,))
             print("This worked")
             user = database_cursor.fetchone()
-            print("This worked")
+            print(user)
             if user and bcrypt.checkpw(password, str.encode(user[2])):
                 print("Also here")
                 payload = {
@@ -70,8 +72,9 @@ def login():
             else:
                 error = "Invalid login credentials"
 
-    except Exception:
-        error = "Internal server error"
+    except Exception as e:
+        print(database_cursor.statement)
+        error = "Internal server error" % e
     finally:
         if database_connection and database_connection.is_connected():
             if database_cursor:
@@ -134,6 +137,7 @@ def register():
 
     except Exception as e:
         print(e)
+        print(database_cursor.statement)
         error = "Internal server error"
     finally:
         if database_connection and database_connection.is_connected():
