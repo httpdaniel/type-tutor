@@ -1,6 +1,6 @@
 /*eslint-disable*/
 
-import './SampleWords.css';
+import '../styles/SampleWords.scss'
 
 function SampleWords(props) {
   const { wordList, currentWord, letterCorrect, wordCorrect } = props;

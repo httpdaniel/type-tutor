@@ -5,7 +5,7 @@ import { AppBar, Toolbar, Typography } from '@material-ui/core';
 
 function Navbar() {
   return (
-    <AppBar position="static" className="navbar">
+    <AppBar position="static" className="navbar" style={{ background: '#eeeeee' }}>
       <Toolbar>
         <div className="navbar__left">
           <Typography variant="h3" className="navbar__title">

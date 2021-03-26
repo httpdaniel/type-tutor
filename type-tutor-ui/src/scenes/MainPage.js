@@ -1,11 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Button } from '@material-ui/core';
 import Keyboard from '../components/Keyboard';
+import Stats from '../components/Stats';
+import '../styles/App.scss';
 
 function MainPage() {
   return (
-    <div>
-      <h1>This is the main page.</h1>
-      <Keyboard />
+    <div className="main">
+      <div className="main__body">
+        <Stats />
+        <Keyboard />
+      </div>
     </div>
   );
 }
