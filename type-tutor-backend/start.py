@@ -30,7 +30,8 @@ import mysql.connector
 from mysql.connector import Error
 import jwt
 from datetime import datetime, timedelta
-import models.models
+import models.models 
+import models.usermodel as user_model
 
 app = Flask(__name__)
 
@@ -156,6 +157,20 @@ def register():
 def seed():
     if request.method == 'GET':
         return seed()
+
+
+@app.route('/minisession', methods=['POST'])
+def mini_session():
+    try:
+        request_data = json.loads(request.data)
+    except:
+        return Response(json.dumps({'message': "Invalid JSON data"}), mimetype='application/json', status='400')
+    response = user_model.mini_session_fn(request_data)
+    if(response is not None):
+        return Response(json.dumps({"message": response }), mimetype='application/json', status='400')
+    else:
+        return Response(json.dumps({"message": "Successfully committed details"}), mimetype='application/json', status='201')
+
 
 
 if __name__ == "__main__":
