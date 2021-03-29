@@ -30,3 +30,24 @@ input {
 input:focus {
   border-radius: 20px;
 }
+
+.Character {
+  text-align: center;
+  font-size: 1.5em;
+  white-space: pre;
+  font-family: monospace;
+}
+
+.Character-current {
+  padding: 0;
+  background-color: #09d3ac;
+}
+
+.Character-out {
+  padding: 0;
+  color: silver;
+}
+
+.Character-in {
+  padding: 0;
+}

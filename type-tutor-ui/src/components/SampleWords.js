@@ -4,7 +4,7 @@ import '../styles/SampleWords.scss'
 
 function SampleWords(props) {
   const { wordList, currentWord, letterCorrect, wordCorrect } = props;
-  console.log(wordCorrect);
+  // console.log(wordCorrect);
   return (
     <div className="SampleWords">
       {wordList.map((word, index) => {

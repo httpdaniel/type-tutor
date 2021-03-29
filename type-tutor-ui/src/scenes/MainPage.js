@@ -8,7 +8,7 @@ function MainPage() {
   return (
     <div className="main">
       <div className="main__body">
-        <Stats />
+        {/* <Stats /> */}
         <Keyboard />
       </div>
     </div>

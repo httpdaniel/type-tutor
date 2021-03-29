@@ -1,7 +1,10 @@
+/* eslint-disable */
 import React, { useState } from 'react';
 import '../styles/App.scss';
 
-function Stats() {
+function Stats(props) {
+  const { wordsperminute } = props;
+
   const [speed, setSpeed] = useState(0);
   const [speedChange, setSpeedChange] = useState(1.2);
 
@@ -19,7 +22,7 @@ function Stats() {
       <div className="statbox__top">
         Speed:
         <span>
-          {speed}
+          {wordsperminute}
           (↑+
           {speedChange}
           )
