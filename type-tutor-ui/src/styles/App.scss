@@ -56,15 +56,13 @@ body {
     width: 50vw;
   }
   .main__text {
-    padding-top: 5vh;
-    height: fit-content;
-    overflow: hidden;
+    height: 20vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     .out__of__focus {
-      text-align: center;
-      height: 0;
-      line-height: 120px;
       z-index: 999;
-      position: relative;
       .fa-mouse-pointer {
         padding-right: 10px;
       }
@@ -72,13 +70,15 @@ body {
     #words {
       color: $secondary-text;
       height: fit-content;
-      overflow: hidden;
       transition: all 0.25s ease 0s;
       display: flex;
-      flex-wrap: wrap;
       width: 100%;
-      align-content: flex-start;
+      align-content: center;
       user-select: none;
+      #words__input {
+        width: 100%;
+        height: auto;
+      }
     }
     #words.blurred {
       opacity: 0.25;
