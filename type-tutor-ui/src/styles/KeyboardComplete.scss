@@ -40,14 +40,30 @@ input:focus {
 
 .Character-current {
   padding: 0;
-  background-color: #09d3ac;
+  animation: blink 0.8s infinite;
 }
 
 .Character-out {
   padding: 0;
-  color: silver;
+  color: #444444;
 }
 
 .Character-in {
   padding: 0;
 }
+
+@mixin animation-mixin($name, $from, $to) {
+  @keyframes #{$name} {
+    0% {
+      background: #444444;
+    }
+    50% {
+      background: #bbbbbb00;
+    }
+    100% {
+      background: #444444;
+    }
+  }
+}
+
+@include animation-mixin(blink, 0, 100%);

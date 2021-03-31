@@ -9,6 +9,8 @@ import '../styles/KeyboardComplete.scss';
 import '../styles/App.scss';
 import Stats from './Stats';
 
+const incorrect = [];
+
 function KeyboardComplete() {
   const text = 'seem year keep if also give between those what ask get one or stand now like state or how system and can great late under mean so be find know do person must make number give system get turn lead fact a head call all good tell run want when need each early very may you problem off life eye';
   const wordList = text.split(' ');
@@ -29,7 +31,16 @@ function KeyboardComplete() {
   const [wpm, setWpm] = useState(0);
   const currentTime = () => new Date().getTime();
 
+  // For saving incorrect characters
+  // const [incorrectChars, setIncorrectChars] = useState([]);
+
+  const [errors, setErrors] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
+
+  const [accuracy, setAccuracy] = useState(0);
+
   useKeyPress((key) => {
+    console.log(incorrect);
     if (!startTime) {
       setStartTime(currentTime());
     }
@@ -43,6 +54,13 @@ function KeyboardComplete() {
       }
       updatedTypedChar += currChar;
       setTypedChar(updatedTypedChar);
+      setCorrectCount(correctCount + 1);
+
+      console.log(correctCount);
+
+      setAccuracy(
+        ((correctCount * 100) / (errors + correctCount)).toFixed(),
+      );
 
       setCurrChar(toTypeChar.charAt(0));
 
@@ -57,8 +75,14 @@ function KeyboardComplete() {
 
         const durationInMinutes = (currentTime() - startTime) / 60000.0;
 
-        setWpm(((wordCount + 1) / durationInMinutes).toFixed(2));
+        setWpm(((wordCount + 1) / durationInMinutes).toFixed());
       }
+    } else {
+      console.log(key);
+      incorrect.push(key);
+      console.log(incorrect);
+      setErrors(errors + 1);
+      console.log(errors);
     }
   });
 
@@ -72,6 +96,7 @@ function KeyboardComplete() {
 
   const onChangeInput = (event) => {
     const inputTB = event.target.value;
+    console.log(inputTB);
     setInput(inputTB);
     keyboard.current.setInput(inputTB);
     const typedLetters = inputTB.split('');
@@ -119,7 +144,7 @@ function KeyboardComplete() {
 
   return (
     <div className="keyboard">
-      <Stats wordsperminute={wpm} />
+      <Stats wordsperminute={wpm} numerrors={errors} accuracyscore={accuracy} />
       <div className="main__text">
         {focusPopup ? (
           <div className="out__of__focus">
@@ -139,14 +164,16 @@ function KeyboardComplete() {
             letterCorrect={window.correct}
             wordCorrect={window.word_correct}
           /> */}
-          <p className="Character">
-            <span className="Character-out">{(leftPadding + typedChar).slice(-35)}</span>
-            <span className="Character-current">{currChar}</span>
-            <span className="Character-in">{toTypeChar.substr(0, 32)}</span>
-          </p>
+          <div id="words__input">
+            <p className="Character">
+              <span className="Character-out">{(leftPadding + typedChar).slice(-35)}</span>
+              <span className="Character-current">{currChar}</span>
+              <span className="Character-in">{toTypeChar.substr(0, 32)}</span>
+            </p>
+          </div>
         </div>
       </div>
-      <input value={input} onChange={onChangeInput} />
+      {/* <input value={input} onChange={onChangeInput} /> */}
       <div style={{ pointerEvents: 'none' }}>
         <Keyboard
           keyboardRef={(r) => (keyboard.current = r)}

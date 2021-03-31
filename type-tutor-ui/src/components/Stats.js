@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import '../styles/App.scss';
 
 function Stats(props) {
-  const { wordsperminute } = props;
+  const { wordsperminute, numerrors, accuracyscore} = props;
 
   const [speed, setSpeed] = useState(0);
   const [speedChange, setSpeedChange] = useState(1.2);
@@ -29,9 +29,16 @@ function Stats(props) {
         </span>
         Errors:
         <span>
-          {errors}
+          {numerrors}
           (↑+
           {errorsChange}
+          )
+        </span>
+        Accuracy:
+        <span>
+          {accuracyscore}%
+          (↑+
+          {scoreChange}
           )
         </span>
         Score:
