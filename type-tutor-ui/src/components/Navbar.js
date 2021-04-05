@@ -23,6 +23,11 @@ function Navbar() {
               Profile
             </Typography>
           </Link>
+          <Link to="/visualization" style={{ textDecoration: 'none' }}>
+            <Typography variant="h6" className="navbar__link">
+              Statistics
+            </Typography>
+          </Link>
           <Link to="/login" style={{ textDecoration: 'none' }}>
             <Typography variant="h6" className="navbar__link">
               Login

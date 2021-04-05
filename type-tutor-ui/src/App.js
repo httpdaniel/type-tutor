@@ -5,6 +5,7 @@ import Register from './scenes/Register';
 import MainPage from './scenes/MainPage';
 import Profile from './scenes/Profile';
 import Navbar from './components/Navbar';
+import Visualization from './scenes/Visualization';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <Route path="/register" component={Register} />
           <Route path="/profile" component={Profile} />
           <Route path="/" exact component={MainPage} />
+          <Route path="/visualization" exact component={Visualization} />
         </Switch>
       </div>
     </Router>

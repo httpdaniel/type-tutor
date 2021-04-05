@@ -9,6 +9,7 @@ $secondary-text: #b2b2b2;
 
 body {
   height: 100%;
+  background-color: #eeeeee;
 }
 
 .App {
@@ -99,3 +100,34 @@ body {
     color: $text-color;
   }
 }
+
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300&display=swap');
+
+
+.vis-container{
+  // padding-top:5% ;
+  // font-family: 'Lato', sans-serif;
+  // max-width: 850px;
+  // height: 100%;
+  // width: 100%;
+  
+}
+
+.chart-container{
+  // position: absolute;
+  // margin: auto;
+  margin-top: 16px;
+  padding-bottom: 32px;
+  width: 100%;
+  min-height: 200px;
+  // padding-left: 20%;
+  // float: center;
+}
+
+// .wpm-container{
+ 
+//   width: 20px;
+//   float: left;
+//   padding-left: 100px;
+//   padding-top:20px;
+// }
