@@ -51,25 +51,6 @@ def login():
         return Response(json.dumps({"message": error }), mimetype='application/json', status='400')
     else:
         return Response(json.dumps({"message": token.decode("utf-8")}), mimetype='application/json', status='200')
-   
-    
-@app.route('/typing', methods=['POST'])
-def typing():
-    try:
-        request_data = json.loads(request.data)
-    except:
-        return Response(json.dumps({'message': "Invalid JSON data"}), mimetype='application/json', status='400')
-
-    if request_data.get("token") is None:
-        return Response(json.dumps({'message': "Unauthorised"}), mimetype='application/json', status='400')
-
-    try:
-        payload = jwt.decode(request_data.get("token"), "123")
-        print(payload['sub'])
-    except Exception:
-        return Response(json.dumps({'message': "Unauthorised"}), mimetype='application/json', status='400')
-    
-    return Response(json.dumps({"message": "success"}), mimetype='application/json', status='200')
 
 
 
@@ -116,6 +97,92 @@ def register():
     else:
         return Response(json.dumps({"message": "Success registered %s" % email}), mimetype='application/json', status='201')
    
+
+@app.route('/typing/submit', methods=['POST'])
+def typing():
+    try:
+        request_data = json.loads(request.data)
+    except:
+        return Response(json.dumps({'message': "Invalid JSON data"}), mimetype='application/json', status='400')
+    
+    if request_data.get("token") is None:
+        return Response(json.dumps({'message': "Unauthorised"}), mimetype='application/json', status='400')
+
+    try:
+        payload = jwt.decode(request_data.get("token"), "123")
+        user_id = payload['sub']
+    except Exception:
+        return Response(json.dumps({'message': "Unauthorised"}), mimetype='application/json', status='400')
+    
+
+    database_connection = None
+    database_cursor = None
+    error = None
+
+    try:
+        database_connection = mysql.connector.connect(host='localhost',
+                                            database='Touch_Typing_Tutor',
+                                            user='josh',
+                                            password='josh',
+                                            port = 3306)
+        if database_connection.is_connected():
+            database_cursor = database_connection.cursor(dictionary=True)
+            database_cursor.execute("select * from Users where user_id = %s;", (user_id,))
+            existing_users = database_cursor.fetchone()
+            existing_users["words_per_min_most_recent"] = float(existing_users["words_per_min_most_recent"])
+            existing_users["words_per_min"] = float(existing_users["words_per_min"])
+            existing_users["words_per_min_total"] = float(existing_users["words_per_min_total"])
+            print(json.dumps(existing_users, indent=4))
+            if existing_users["words_per_min_total"] == 0:
+                print("no info")
+                words_per_min_most_recent = request_data["wpm"]
+                words_per_min = request_data["wpm"]
+                words_per_min_total = request_data["wpm"]
+                tests_taken = 1
+            else:
+                tests_taken = existing_users["tests_taken"]
+                words_per_min_most_recent = request_data["wpm"]
+                words_per_min_total = existing_users["words_per_min_total"]
+                words_per_min = (tests_taken * existing_users["words_per_min"] + words_per_min_most_recent) / (tests_taken + 1)
+                tests_taken += 1
+
+            database_cursor.execute(
+            """
+                UPDATE Users 
+                SET words_per_min_most_recent = %s, tests_taken = %s, words_per_min_total = %s, words_per_min = %s
+                where user_id = %s;
+            """, (words_per_min_most_recent, tests_taken, words_per_min_total, words_per_min, user_id,)
+            )
+            print(words_per_min_most_recent, tests_taken, words_per_min_total, words_per_min, user_id)
+            database_connection.commit()
+        times = {}
+
+        # character_times
+        for k, v in request_data["character_times"]:
+            pass
+        # write query get sql join tables
+        # insert then update
+
+    except Exception as e:
+        print(e) 
+        error = "Internal server error"
+    finally:
+        if database_connection and database_connection.is_connected():
+            if database_cursor:
+                database_cursor.close()
+            database_connection.close()
+   
+   
+
+   
+
+    # 1 add times to database
+    # 2 add errors to database
+    # 3 add correct times to db
+
+
+    return Response(json.dumps({"message": "success"}), mimetype='application/json', status='200')
+
 
 
 @app.route('/seed', methods=['GET'])

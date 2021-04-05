@@ -1,0 +1,40 @@
+/POST
+most recent wpm store in database and return in these calls
+
+req
+{
+    "token" : ""
+    "times": {
+        "a": 50,
+        "b": 40,
+        ...
+    },
+    "wpm": 20,
+    "characterset": [
+        "e", "i" ...
+    ],
+    "errors": {
+        "e": 5,
+        "i": 4,
+        ...
+    },
+    "next_key": "t"
+}
+
+res
+{
+    "sent": "...",
+    "characterset": [],
+    "wpm": 20
+}
+
+/GET
+{
+    "token" : "",
+    "sent": "...",
+    "characterset": [],
+    "wpm": 20,
+}
+
+initial charset: e a r i o t
+
