@@ -61,80 +61,80 @@ def calculate_json_avg(correct_values, incorrect_values):
 # update new values for keys (time correctness incorrectness)
 
 
-# @app.route('/minisession', methods=['POST'])
-def mini_session_fn(request_data):
-    # try:
-    #     request_data = json.loads(request.data)
-    # except:
-    #     return Response(json.dumps({'message': "Invalid JSON data"}), mimetype='application/json', status='400')
+# # @app.route('/minisession', methods=['POST'])
+# def mini_session_fn(request_data):
+#     # try:
+#     #     request_data = json.loads(request.data)
+#     # except:
+#     #     return Response(json.dumps({'message': "Invalid JSON data"}), mimetype='application/json', status='400')
 
     
     
-    incorrect_characters  = request_data.get("incorrect_characters")
-    correct_characters  = request_data.get("correct_characters")
-    correct_characters_avg, incorrect_characters_avg, total_occurances, correct_avg, incorrect_avg  = calculate_json_avg(correct_characters, incorrect_characters)
-    character_time   = request_data.get("character_time")
-    # character_id    = request_data.get("character_id")
-    user_id     = request_data.get("user_id")
+#     incorrect_characters  = request_data.get("incorrect_characters")
+#     correct_characters  = request_data.get("correct_characters")
+#     correct_characters_avg, incorrect_characters_avg, total_occurances, correct_avg, incorrect_avg  = calculate_json_avg(correct_characters, incorrect_characters)
+#     character_time   = request_data.get("character_time")
+#     # character_id    = request_data.get("character_id")
+#     user_id     = request_data.get("user_id")
 
 
 
-    # correct_characters_avg = json.dumps(correct_characters_avg)
-    # incorrect_characters_avg = json.dumps(incorrect_characters_avg)
-    # total_occurances  = json.dumps(total_occurances)
-    # character_time = json.dumps(character_time)
+#     # correct_characters_avg = json.dumps(correct_characters_avg)
+#     # incorrect_characters_avg = json.dumps(incorrect_characters_avg)
+#     # total_occurances  = json.dumps(total_occurances)
+#     # character_time = json.dumps(character_time)
 
 
 
-    database_connection = None
-    database_cursor = None
-    error = None
-    try:
-        database_connection = mysql.connector.connect(host='eu-cdbr-west-03.cleardb.net',
-                                            database='heroku_8af8fae4116d831',
-                                            user='b1282a2123d519',
-                                            password='29416dad')
-        if database_connection.is_connected():
-            print("Database Connected")
-            database_cursor = database_connection.cursor()
-            id = None
-            character_id = None
-            for (k,v) in correct_characters_avg.items():
-                print("K is ", k)
-                database_cursor.execute("SELECT character_id FROM CHARACTERS WHERE CHARACTER_NAME = '{k}' limit 1 ;".format(k = k))
-                user_exists = None
-                for i in database_cursor:
-                    character_id = i[0]
-                print(incorrect_characters_avg[k],correct_characters_avg[k], total_occurances[k], character_time[k], character_id, user_id)
-                database_cursor.execute("SELECT user_id FROM og_user_characters WHERE user_id = {k} and character_id = {c};".format(k = user_id, c = character_id))
-                for i in database_cursor:
-                    user_exists = i[0]
-                print("User exists", user_exists)
+#     database_connection = None
+#     database_cursor = None
+#     error = None
+#     try:
+#         database_connection = mysql.connector.connect(host='eu-cdbr-west-03.cleardb.net',
+#                                             database='heroku_8af8fae4116d831',
+#                                             user='b1282a2123d519',
+#                                             password='29416dad')
+#         if database_connection.is_connected():
+#             print("Database Connected")
+#             database_cursor = database_connection.cursor()
+#             id = None
+#             character_id = None
+#             for (k,v) in correct_characters_avg.items():
+#                 print("K is ", k)
+#                 database_cursor.execute("SELECT character_id FROM CHARACTERS WHERE CHARACTER_NAME = '{k}' limit 1 ;".format(k = k))
+#                 user_exists = None
+#                 for i in database_cursor:
+#                     character_id = i[0]
+#                 print(incorrect_characters_avg[k],correct_characters_avg[k], total_occurances[k], character_time[k], character_id, user_id)
+#                 database_cursor.execute("SELECT user_id FROM og_user_characters WHERE user_id = {k} and character_id = {c};".format(k = user_id, c = character_id))
+#                 for i in database_cursor:
+#                     user_exists = i[0]
+#                 print("User exists", user_exists)
 
-                if user_exists == None:
-                    print("User exists", user_exists)
-                    database_cursor.execute("INSERT INTO `OG_USER_CHARACTERS` (`incorrect_characters` , `correct_characters`  , `total_occurances` , `character_time` , `character_id` , `user_id`) VALUES(%s, %s, %s, %s, %s, %s) ;",(incorrect_characters_avg[k],correct_characters_avg[k], total_occurances[k], character_time[k], character_id, user_id ))
-                else:
-                    database_cursor.execute("update og_user_characters set incorrect_characters = {incorrect_characters_avg}, correct_characters  = {correct_characters_avg}, total_occurances = {total_occurances}, character_time = {character_time} where character_id = {character_id} and user_id = {user_id} ;".format(incorrect_characters_avg = incorrect_characters_avg[k],correct_characters_avg =correct_characters_avg[k], total_occurances =total_occurances[k], character_time = character_time[k], character_id = character_id, user_id = user_id  ))
+#                 if user_exists == None:
+#                     print("User exists", user_exists)
+#                     database_cursor.execute("INSERT INTO `OG_USER_CHARACTERS` (`incorrect_characters` , `correct_characters`  , `total_occurances` , `character_time` , `character_id` , `user_id`) VALUES(%s, %s, %s, %s, %s, %s) ;",(incorrect_characters_avg[k],correct_characters_avg[k], total_occurances[k], character_time[k], character_id, user_id ))
+#                 else:
+#                     database_cursor.execute("update og_user_characters set incorrect_characters = {incorrect_characters_avg}, correct_characters  = {correct_characters_avg}, total_occurances = {total_occurances}, character_time = {character_time} where character_id = {character_id} and user_id = {user_id} ;".format(incorrect_characters_avg = incorrect_characters_avg[k],correct_characters_avg =correct_characters_avg[k], total_occurances =total_occurances[k], character_time = character_time[k], character_id = character_id, user_id = user_id  ))
 
-                database_connection.commit()
+#                 database_connection.commit()
 
-            # database_cursor.execute("INSERT INTO `user_characters` (`incorrect_characters` , `correct_characters`  , `total_occurances` , `character_time` , `character_id` , `user_id`  ) VALUES(%s, %s, %s, %s, %s, %s);",(incorrect_characters_avg,correct_characters_avg, total_occurances, character_time, character_id, user_id))
-        else:
-            error = "There was a problem connecting to the database"
-    except Exception as e:
-        print(database_cursor.statement)
-        error = "Internal server error " + e
-    finally:
-        if database_connection and database_connection.is_connected():
-            if database_cursor:
-                database_cursor.close()
-            database_connection.close()
+#             # database_cursor.execute("INSERT INTO `user_characters` (`incorrect_characters` , `correct_characters`  , `total_occurances` , `character_time` , `character_id` , `user_id`  ) VALUES(%s, %s, %s, %s, %s, %s);",(incorrect_characters_avg,correct_characters_avg, total_occurances, character_time, character_id, user_id))
+#         else:
+#             error = "There was a problem connecting to the database"
+#     except Exception as e:
+#         print(database_cursor.statement)
+#         error = "Internal server error " + e
+#     finally:
+#         if database_connection and database_connection.is_connected():
+#             if database_cursor:
+#                 database_cursor.close()
+#             database_connection.close()
     
-    if error:
-        return error
-    else:
-        return None
+#     if error:
+#         return error
+#     else:
+#         return None
 
 
 # @app.route('/minisession', methods=['POST'])
@@ -153,6 +153,7 @@ def full_session_fn(request_data):
     # character_id    = request_data.get("character_id")
     user_id     = request_data.get("user_id")
     WPM     = request_data.get("WPM")
+    #accuracy
 
     # correct_characters_avg = json.dumps(correct_characters_avg)
     # incorrect_characters_avg = json.dumps(incorrect_characters_avg)
@@ -211,7 +212,12 @@ def full_session_fn(request_data):
                 #print("User exists", user_exists)
 
 
-                
+                if user_exists == None:
+                    print("User exists", user_exists)
+                    database_cursor.execute("INSERT INTO `OG_USER_CHARACTERS` (`incorrect_characters` , `correct_characters`  , `total_occurances` , `character_time` , `character_id` , `user_id`) VALUES(%s, %s, %s, %s, %s, %s) ;",(incorrect_characters_avg[k],correct_characters_avg[k], total_occurances[k], character_time[k], character_id, user_id ))
+                else:
+                    database_cursor.execute("update og_user_characters set incorrect_characters = {incorrect_characters_avg}, correct_characters  = {correct_characters_avg}, total_occurances = {total_occurances}, character_time = {character_time} where character_id = {character_id} and user_id = {user_id} ;".format(incorrect_characters_avg = incorrect_characters_avg[k],correct_characters_avg =correct_characters_avg[k], total_occurances =total_occurances[k], character_time = character_time[k], character_id = character_id, user_id = user_id  ))
+
                 database_cursor.execute("INSERT INTO `testsessions` (`incorrect_characters` , `correct_characters`  , `total_occurances` , `character_time` , `character_id` , `user_id`, `sessionID`) VALUES(%s, %s, %s, %s, %s, %s, %s) ;",(incorrect_characters_avg[k],correct_characters_avg[k], total_occurances[k], character_time[k], character_id, user_id , sessionID))
        
                 database_connection.commit()
