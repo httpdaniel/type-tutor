@@ -121,8 +121,6 @@ def generate_text(user_id):
     # # unlock_seq = ['e', 'n', 'i', 't', 'r', 'l', 's', 'a', 'u', 'o', 'd', 'y', 'c', 'h', 'g', 'm', 'p', 'b', 'k', 'v', 'w', 'f', 'z', 'x', 'q', 'j']
 
 
-
-
     incorrect_characters = min_max_normalisation(incorrect_characters, character_index_map)
     character_times = min_max_normalisation(character_times, character_index_map)
 
