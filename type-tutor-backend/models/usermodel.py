@@ -147,13 +147,12 @@ def full_session_fn(request_data):
     
     
     incorrect_characters  = request_data.get("incorrect_characters")
-    total_correct_characters  = request_data.get("correct_characters")
+    correct_characters  = request_data.get("correct_characters")
     correct_characters_avg, incorrect_characters_avg, total_occurances, correct_avg, incorrect_avg  = calculate_json_avg(correct_characters, incorrect_characters)
     character_time   = request_data.get("character_time")
     # character_id    = request_data.get("character_id")
     user_id     = request_data.get("user_id")
-
-
+    WPM     = request_data.get("WPM")
 
     # correct_characters_avg = json.dumps(correct_characters_avg)
     # incorrect_characters_avg = json.dumps(incorrect_characters_avg)
@@ -172,9 +171,31 @@ def full_session_fn(request_data):
                                             password='29416dad')
         if database_connection.is_connected():
             print("Database Connected")
-            database_cursor = database_connection.cursor()
+            database_cursor = database_connection.cursor(buffered = True)
             id = None
             character_id = None
+
+            #print(database_cursor)
+
+            user_exists = None
+            
+            database_cursor.execute(" select user_id from testsessions where user_id = {k};".format(k = user_id))
+            for i in database_cursor:
+                user_exists = i[0]
+
+            if user_exists is None:
+                sessionID = 1
+                print("Submitting first session for user " + str(user_id))
+
+            else:
+                database_cursor.execute("SELECT MAX(sessionID) FROM testsessions WHERE user_id = '{k}' limit 1 ;".format(k = user_id))
+                for i in database_cursor:
+                    lastSession = i[0]
+                sessionID = int(lastSession) + 1
+                print("Submitting session " + str(sessionID) + " for user " + str(user_id))
+
+            database_cursor.execute("INSERT INTO `sessionstats` (`user_id` , `WPM`  , `sessionID`) VALUES(%s, %s, %s) ;",(user_id, WPM, sessionID))
+
             for (k,v) in correct_characters_avg.items():
                 print("K is ", k)
                 database_cursor.execute("SELECT character_id FROM CHARACTERS WHERE CHARACTER_NAME = '{k}' limit 1 ;".format(k = k))
@@ -183,16 +204,16 @@ def full_session_fn(request_data):
                     character_id = i[0]
                 print(incorrect_characters_avg[k],correct_characters_avg[k], total_occurances[k], character_time[k], character_id, user_id)
                 database_cursor.execute("SELECT user_id FROM testsessions WHERE user_id = {k} and character_id = {c};".format(k = user_id, c = character_id))
+
+            
                 for i in database_cursor:
                     user_exists = i[0]
-                print("User exists", user_exists)
+                #print("User exists", user_exists)
 
-                if user_exists == None:
-                    print("User exists", user_exists)
-                    database_cursor.execute("INSERT INTO `testsessions` (`incorrect_characters` , `correct_characters`  , `total_occurances` , `character_time` , `character_id` , `user_id`) VALUES(%s, %s, %s, %s, %s, %s) ;",(incorrect_characters_avg[k],correct_characters_avg[k], total_occurances[k], character_time[k], character_id, user_id ))
-                else:
-                    database_cursor.execute("update testsessions set incorrect_characters = {incorrect_characters_avg}, correct_characters  = {correct_characters_avg}, total_occurances = {total_occurances}, character_time = {character_time} where character_id = {character_id} and user_id = {user_id} ;".format(incorrect_characters_avg = incorrect_characters_avg[k],correct_characters_avg =correct_characters_avg[k], total_occurances =total_occurances[k], character_time = character_time[k], character_id = character_id, user_id = user_id  ))
 
+                
+                database_cursor.execute("INSERT INTO `testsessions` (`incorrect_characters` , `correct_characters`  , `total_occurances` , `character_time` , `character_id` , `user_id`, `sessionID`) VALUES(%s, %s, %s, %s, %s, %s, %s) ;",(incorrect_characters_avg[k],correct_characters_avg[k], total_occurances[k], character_time[k], character_id, user_id , sessionID))
+       
                 database_connection.commit()
 
             # database_cursor.execute("INSERT INTO `user_characters` (`incorrect_characters` , `correct_characters`  , `total_occurances` , `character_time` , `character_id` , `user_id`  ) VALUES(%s, %s, %s, %s, %s, %s);",(incorrect_characters_avg,correct_characters_avg, total_occurances, character_time, character_id, user_id))
@@ -200,7 +221,8 @@ def full_session_fn(request_data):
             error = "There was a problem connecting to the database"
     except Exception as e:
         print(database_cursor.statement)
-        error = "Internal server error " + e
+        print(e)
+        error = "Internal server error "
     finally:
         if database_connection and database_connection.is_connected():
             if database_cursor:
