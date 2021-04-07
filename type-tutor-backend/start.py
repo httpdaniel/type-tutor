@@ -173,5 +173,19 @@ def mini_session():
 
 
 
+@app.route('/fullsession', methods=['POST'])
+def full_session():
+    try:
+        request_data = json.loads(request.data)
+    except:
+        return Response(json.dumps({'message': "Invalid JSON data"}), mimetype='application/json', status='400')
+    response = user_model.full_session_fn(request_data)
+    if(response is not None):
+        return Response(json.dumps({"message": response }), mimetype='application/json', status='400')
+    else:
+        return Response(json.dumps({"message": "Successfully committed details"}), mimetype='application/json', status='201')
+
+
+
 if __name__ == "__main__":
     app.run(port=8000, debug=True)
