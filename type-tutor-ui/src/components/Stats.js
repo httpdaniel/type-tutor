@@ -1,9 +1,10 @@
 /* eslint-disable */
 import React, { useState } from 'react';
+import KeysetBox from './KeysetBox';
 import '../styles/App.scss';
 
 function Stats(props) {
-  const { wordsperminute, numerrors, accuracyscore} = props;
+  const { wordsperminute, numerrors, accuracyscore, keyset } = props;
 
   const [speed, setSpeed] = useState(0);
   const [speedChange, setSpeedChange] = useState(1.2);
@@ -14,8 +15,17 @@ function Stats(props) {
   const [score, setScore] = useState(0);
   const [scoreChange, setScoreChange] = useState(4.8);
 
-  const [keyset, setKeyset] = useState([]);
+  // const [keyset, setKeyset] = useState(['A', 'B', 'C']);
+  const [keybox, setKeybox] = useState([])
+
   const [currentKey, setCurrentKey] = useState('');
+
+  const alphabet = ['E', 'A', 'R', 'I', 'O', 'T', 'N', 'S', 'L', 'C', 'U', 'D', 'P', 'M', 'H', 'G', 'B', 'F', 'Y', 'W', 'K', 'V', 'X', 'Z', 'J', 'Q'];
+
+  for(let i = 0; i<alphabet.length; i++) {
+    const open = keyset.includes(alphabet[i]);
+    keybox.push(<KeysetBox keys={[alphabet[i], open]}></KeysetBox>)
+  }
 
   return (
     <div className="statbox">
@@ -51,8 +61,7 @@ function Stats(props) {
       </div>
       <div className="statbox__middle">
         Key Set:
-        {' '}
-        {keyset}
+        {keybox}
       </div>
       <div className="statbox__bottom">
         Current Key:
