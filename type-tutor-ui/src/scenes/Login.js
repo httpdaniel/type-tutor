@@ -1,5 +1,5 @@
 /* eslint-disable*/
-import React from 'react';
+import React, { useState }  from 'react';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -37,6 +37,22 @@ const useStyles = makeStyles((theme) => ({
 
 function Login() {
   const classes = useStyles();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  function handleSubmit(event) {
+    event.preventDefault();
+    //console.log( 'Email:', email, 'Password: ', password); 
+    fetch('/login', {
+      method: 'POST',
+      headers: {
+        'Content-type': 'application/json',
+      },
+      body: JSON.stringify({email: email, password: password}),
+    })
+      .then(res => res.json())
+      .then(res => console.log(res));
+  }
 
   return (
     <Container component="main" maxWidth="xs">
@@ -48,7 +64,7 @@ function Login() {
         <Typography component="h1" variant="h5">
           Sign in
         </Typography>
-        <form className={classes.form} noValidate>
+        <form className={classes.form} noValidate onSubmit={handleSubmit}>
           <TextField
             variant="outlined"
             margin="normal"
@@ -59,6 +75,8 @@ function Login() {
             name="email"
             autoComplete="email"
             autoFocus
+            value={email}
+            onInput={ e=>setEmail(e.target.value)}
           />
           <TextField
             variant="outlined"
@@ -70,6 +88,8 @@ function Login() {
             type="password"
             id="password"
             autoComplete="current-password"
+            value={password}
+            onInput={ e=>setPassword(e.target.value)}
           />
           <FormControlLabel
             control={<Checkbox value="remember" color="primary" />}

@@ -1,5 +1,5 @@
 /* eslint-disable*/
-import React from 'react';
+import React, { useState } from 'react';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -33,8 +33,26 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+
+
 function Register() {
   const classes = useStyles();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  function handleSubmit(event) {
+    event.preventDefault();
+    //console.log( 'Email:', email, 'Password: ', password); 
+    fetch('/login', {
+      method: 'POST',
+      headers: {
+        'Content-type': 'application/json',
+      },
+      body: JSON.stringify({email: email, password: password}),
+    })
+      .then(res => res.json())
+      .then(res => console.log(res));
+  }
 
   return (
     <Container component="main" maxWidth="xs">
@@ -46,7 +64,7 @@ function Register() {
         <Typography component="h1" variant="h5">
           Sign up
         </Typography>
-        <form className={classes.form} noValidate>
+        <form className={classes.form} noValidate onSubmit={handleSubmit}>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
               <TextField
@@ -80,6 +98,8 @@ function Register() {
                 label="Email Address"
                 name="email"
                 autoComplete="email"
+                value={email}
+                onInput={ e=>setEmail(e.target.value)}
               />
             </Grid>
             <Grid item xs={12}>
@@ -92,6 +112,8 @@ function Register() {
                 type="password"
                 id="password"
                 autoComplete="current-password"
+                value={password}
+                onInput={ e=>setPassword(e.target.value)}
               />
             </Grid>
             <Grid item xs={12}>
@@ -113,7 +135,7 @@ function Register() {
           <Grid container justify="flex-end">
             <Grid item>
               <Link href="/login" variant="body2">
-                {"Don't have an account? Sign Up"}
+                {"Have an account? Sign In"}
               </Link>
             </Grid>
           </Grid>
