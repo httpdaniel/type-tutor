@@ -12,7 +12,12 @@ import Stats from './Stats';
 const incorrect = [];
 
 function KeyboardComplete() {
-  const text = 'seem year keep if also give between those what ask get one or stand now like state or how system and can great late under mean so be find know do person must make number give system get turn lead fact a head call all good tell run want when need each early very may you problem off life eye';
+  // 'seem year keep if also give between those what ask get
+  // one or stand now like state or how system and
+  // can great late under mean so be find know do person must
+  // make number give system get turn lead fact a head call all
+  // good tell run want when need each early very may you problem off life eye';
+  const text = 'to tar it or too it are trio oar air ariot ear';
   const wordList = text.split(' ');
   const [input, setInput] = useState('');
   const [currentWordNumber, setcurrentWordNumber] = useState(0);
@@ -39,14 +44,50 @@ function KeyboardComplete() {
 
   const [accuracy, setAccuracy] = useState(0);
 
+  const [gameOver, setGameOver] = useState(false);
+
+  const [gameState, setGameState] = useState({});
+
+  const targetAccuracy = 90;
+  const targetWPM = 40;
+
+  const keyset = ['E', 'A', 'R', 'I', 'O', 'T'];
+
+  const count = (str, c) => {
+    let result = 0;
+    let i = 0;
+    for (i; i < str.length; i++) if (str[i] === c) result++;
+    return result;
+  };
+
   useKeyPress((key) => {
-    console.log(incorrect);
     if (!startTime) {
       setStartTime(currentTime());
     }
 
     let updatedTypedChar = typedChar;
     let updatedToTypeChar = toTypeChar;
+
+    if (updatedToTypeChar === '') {
+      console.log('OVER');
+      setGameOver(true);
+      const incorrect_info = [];
+      const unique = [...new Set(incorrect)];
+      for (let i = 0; i < unique.length; i++) {
+        const incorrectChar = unique[i];
+        const num_time = count(incorrect.toString(), unique[i]);
+        const appears = count(text, unique[i]);
+        const acc = appears - num_time >= 0 ? (appears - num_time) / appears : 0;
+        incorrect_info.push({
+          incorrect_char: incorrectChar,
+          num_times: num_time,
+          num_appear: appears,
+          char_acc: acc,
+        });
+      }
+      const game_info = { wpm: wpm, total_accuracy: accuracy, incorrect_chars: incorrect_info };
+      console.log(game_info);
+    }
 
     if (key === currChar) {
       if (leftPadding.length > 0) {
@@ -55,8 +96,6 @@ function KeyboardComplete() {
       updatedTypedChar += currChar;
       setTypedChar(updatedTypedChar);
       setCorrectCount(correctCount + 1);
-
-      console.log(correctCount);
 
       setAccuracy(
         ((correctCount * 100) / (errors + correctCount)).toFixed(),
@@ -78,11 +117,9 @@ function KeyboardComplete() {
         setWpm(((wordCount + 1) / durationInMinutes).toFixed());
       }
     } else {
-      console.log(key);
-      incorrect.push(key);
+      incorrect.push(currChar);
       console.log(incorrect);
       setErrors(errors + 1);
-      console.log(errors);
     }
   });
 
@@ -144,7 +181,7 @@ function KeyboardComplete() {
 
   return (
     <div className="keyboard">
-      <Stats wordsperminute={wpm} numerrors={errors} accuracyscore={accuracy} />
+      <Stats wordsperminute={wpm} numerrors={errors} accuracyscore={accuracy} keyset={keyset} />
       <div className="main__text">
         {focusPopup ? (
           <div className="out__of__focus">
