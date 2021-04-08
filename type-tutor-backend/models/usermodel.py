@@ -32,10 +32,10 @@ def min_max_normalisation(prob, character_index_map):
     check_unlock_next = True
 
     for i in range(len(prob_a)):
-        # prob_a[i] = (prob_a[i] - float(min(prob_a))) / (max(prob_a) - min(prob_a))
+        prob_a[i] = (prob_a[i] - float(min(prob_a))) / (max(prob_a) - min(prob_a))
         # if prob_a[i] == 0 and (inverse_index_map[i] == "e" or inverse_index_map[i] == "n" or inverse_index_map[i] == "i" or inverse_index_map[i] == "t" or inverse_index_map[i] == "r"):
         #     check_unlock_next = False
-        prob_a[i] = 1
+        # prob_a[i] = 1
     
     # unlock_seq = ['e', 'n', 'i', 't', 'r', 'l', 's', 'a', 'u', 'o', 'd', 'y', 'c', 'h', 'g', 'm', 'p', 'b', 'k', 'v', 'w', 'f', 'z', 'x', 'q', 'j']
     return prob_a
@@ -104,22 +104,38 @@ def generate_text(user_id):
                 database_cursor.close()
             database_connection.close()
     
+    fresh_start = False
+    for k, v in incorrect_characters.items():
+        if v == 0 and (k == "e" or k == "n" or k == "i" or k == "t" or k == "r"):
+            fresh_start = True
+            incorrect_characters[k] = 1
+
     incorrect_characters[" "] = 0.01
     character_times[" "] = 0.01
 
-
-
-
-    # check_unlock_next = True
-
-    # for i in range(len(incorrect_characters)):
-    #     prob_a[i] = (prob_a[i] - float(min(prob_a))) / (max(prob_a) - min(prob_a))
-    #     if prob_a[i] == 0 and (inverse_index_map[i] == "e" or inverse_index_map[i] == "n" or inverse_index_map[i] == "i" or inverse_index_map[i] == "t" or inverse_index_map[i] == "r"):
-    #         check_unlock_next = False
-    #         prob_a[i] = 1
-    
-    # # unlock_seq = ['e', 'n', 'i', 't', 'r', 'l', 's', 'a', 'u', 'o', 'd', 'y', 'c', 'h', 'g', 'm', 'p', 'b', 'k', 'v', 'w', 'f', 'z', 'x', 'q', 'j']
-
+    if not fresh_start and wpm >= 40:
+        unlock_next_character = False
+        found_zero_character = False
+        next_character_index = 0
+        unlock_seq = ['e', 'n', 'i', 't', 'r', 'l', 's', 'a', 'u', 'o', 'd', 'y', 'c', 'h', 'g', 'm', 'p', 'b', 'k', 'v', 'w', 'f', 'z', 'x', 'q', 'j']
+        for i in unlock_seq:
+            if found_zero_character and incorrect_characters[i] != 0:
+                unlock_next_character = False
+                break
+            if incorrect_characters[i] == 0:
+                found_zero_character = True
+            elif i > 0.1:
+                unlock_next_character = False
+                break
+            else:
+                next_character_index += 1
+            
+        if unlock_next_character:
+            mean_character_weights = []
+            for i in range(next_character_index-1):
+                if v != 0:
+                    mean_character_weights.append(incorrect_characters[i])
+            incorrect_characters[unlock_seq[next_character_index]] = statistics.mean(mean_character_weights)
 
     incorrect_characters = min_max_normalisation(incorrect_characters, character_index_map)
     character_times = min_max_normalisation(character_times, character_index_map)
