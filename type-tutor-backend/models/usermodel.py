@@ -153,6 +153,8 @@ def full_session_fn(request_data):
     # character_id    = request_data.get("character_id")
     user_id     = request_data.get("user_id")
     WPM     = request_data.get("WPM")
+    character_accuracy    = request_data.get("character_accuracy")
+    totalAccuracy    = request_data.get("total_accuracy")
     #accuracy
 
     # correct_characters_avg = json.dumps(correct_characters_avg)
@@ -195,7 +197,7 @@ def full_session_fn(request_data):
                 sessionID = int(lastSession) + 1
                 print("Submitting session " + str(sessionID) + " for user " + str(user_id))
 
-            database_cursor.execute("INSERT INTO `sessionstats` (`user_id` , `WPM`  , `sessionID`) VALUES(%s, %s, %s) ;",(user_id, WPM, sessionID))
+            database_cursor.execute("INSERT INTO `sessionstats` (`user_id` , `WPM`  , `sessionID`, `totalAccuracy`) VALUES(%s, %s, %s, %s) ;",(user_id, WPM, sessionID, totalAccuracy))
 
             for (k,v) in correct_characters_avg.items():
                 print("K is ", k)
@@ -214,11 +216,11 @@ def full_session_fn(request_data):
 
                 if user_exists == None:
                     print("User exists", user_exists)
-                    database_cursor.execute("INSERT INTO `OG_USER_CHARACTERS` (`incorrect_characters` , `correct_characters`  , `total_occurances` , `character_time` , `character_id` , `user_id`) VALUES(%s, %s, %s, %s, %s, %s) ;",(incorrect_characters_avg[k],correct_characters_avg[k], total_occurances[k], character_time[k], character_id, user_id ))
+                    database_cursor.execute("INSERT INTO `OG_USER_CHARACTERS` (`incorrect_characters` , `correct_characters`  , `total_occurances` , `character_time` , `character_accuracy` , `character_id` , `user_id`) VALUES(%s, %s, %s, %s, %s, %s, %s) ;",(incorrect_characters_avg[k],correct_characters_avg[k], total_occurances[k], character_time[k], character_accuracy[k], character_id, user_id ))
                 else:
-                    database_cursor.execute("update og_user_characters set incorrect_characters = {incorrect_characters_avg}, correct_characters  = {correct_characters_avg}, total_occurances = {total_occurances}, character_time = {character_time} where character_id = {character_id} and user_id = {user_id} ;".format(incorrect_characters_avg = incorrect_characters_avg[k],correct_characters_avg =correct_characters_avg[k], total_occurances =total_occurances[k], character_time = character_time[k], character_id = character_id, user_id = user_id  ))
+                    database_cursor.execute("update og_user_characters set incorrect_characters = {incorrect_characters_avg}, correct_characters  = {correct_characters_avg}, total_occurances = {total_occurances}, character_accuracy = {character_accuracy_ave},  character_time = {character_time}  where character_id = {character_id} and user_id = {user_id} ;".format(incorrect_characters_avg = incorrect_characters_avg[k],correct_characters_avg =correct_characters_avg[k], total_occurances =total_occurances[k], character_time = character_time[k], character_accuracy_ave = character_accuracy[k], character_id = character_id, user_id = user_id  ))
 
-                database_cursor.execute("INSERT INTO `testsessions` (`incorrect_characters` , `correct_characters`  , `total_occurances` , `character_time` , `character_id` , `user_id`, `sessionID`) VALUES(%s, %s, %s, %s, %s, %s, %s) ;",(incorrect_characters_avg[k],correct_characters_avg[k], total_occurances[k], character_time[k], character_id, user_id , sessionID))
+                database_cursor.execute("INSERT INTO `testsessions` (`incorrect_characters` , `correct_characters`  , `total_occurances` , `character_time` , `character_id` , `character_accuracy`, `user_id`, `sessionID`) VALUES(%s, %s, %s, %s, %s, %s, %s, %s) ;",(incorrect_characters_avg[k],correct_characters_avg[k], total_occurances[k], character_time[k], character_accuracy[k], character_id, user_id , sessionID))
        
                 database_connection.commit()
 
