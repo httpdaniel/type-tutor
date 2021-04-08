@@ -227,7 +227,17 @@ def store_session_details(request_data):
     wpm  = request_data.get("wpm")
     correct_characters  = request_data.get("correct_characters")
     character_time   = request_data.get("character_time")
-    user_id = request_data.get("user_id")
+    # character_id    = request_data.get("character_id")
+    user_id     = request_data.get("user_id")
+    character_accuracy    = request_data.get("character_accuracy")
+    totalAccuracy    = request_data.get("total_accuracy")
+    #accuracy
+
+    # correct_characters_avg = json.dumps(correct_characters_avg)
+    # incorrect_characters_avg = json.dumps(incorrect_characters_avg)
+    # total_occurances  = json.dumps(total_occurances)
+    # character_time = json.dumps(character_time)
+
 
     database_connection = None
     database_cursor = None
@@ -242,23 +252,27 @@ def store_session_details(request_data):
         if database_connection.is_connected():
             database_cursor = database_connection.cursor(dictionary=True)
 
-            database_cursor.execute("SELECT MAX(sessionID) as sessionID FROM testsessions WHERE user_id = '{k}' limit 1 ;".format(k = user_id))
+            print(user_id)
+            database_cursor.execute("SELECT MAX(sessionID) as sessionID FROM sessionstats WHERE user_id = '{k}' limit 1 ;".format(k = user_id))
             lastSession = database_cursor.fetchone()
             if not lastSession["sessionID"]:
                 sessionID = 1
             else:
+                print(lastSession["sessionID"])
                 sessionID = int(lastSession["sessionID"]) + 1
 
-            database_cursor.execute("INSERT INTO `sessionstats` (`user_id` , `WPM`  , `sessionID`) VALUES(%s, %s, %s) ;",(user_id, wpm, sessionID))
+            database_cursor.execute("INSERT INTO `sessionstats` (`user_id` , `WPM`  , `sessionID`, `totalAccuracy`) VALUES(%s, %s, %s, %s) ;",(user_id, wpm, sessionID, totalAccuracy))
 
             database_cursor.execute("select * from Users where user_id = %s;", (user_id,))
             existing_users = database_cursor.fetchone()
 
             updated_test_taken = existing_users["tests_taken"] + 1
+
             updated_wpm = (existing_users["tests_taken"] * existing_users["words_per_min"] + wpm) / (updated_test_taken)
-            
+
             database_cursor.execute("select * from og_user_characters inner join characters on characters.character_id = og_user_characters.character_id where user_id = %s;", (user_id,))
             character_data = database_cursor.fetchall()
+
             updated_character_data = []
             testsessions_data = []
 
@@ -267,21 +281,22 @@ def store_session_details(request_data):
                     if i['character_name'] == k:
                         updated_correct_characters = (existing_users["tests_taken"] * i["correct_characters"] + request_data["correct_characters"][k]) / (updated_test_taken)
                         updated_incorrect_characters = (existing_users["tests_taken"] * i["incorrect_characters"] + request_data["incorrect_characters"][k]) / (updated_test_taken)
-                        updated_character_times = (existing_users["tests_taken"] * i["character_time"] + request_data["character_times"][k]) / (updated_test_taken)
-                        updated_character_data.append((updated_correct_characters, updated_incorrect_characters, updated_character_times, user_id, i["character_id"]))
-                        testsessions_data.append((updated_correct_characters, updated_incorrect_characters, updated_character_times, user_id, i["character_id"], sessionID))
-
+                        updated_character_times = (existing_users["tests_taken"] * i["character_time"] + request_data["character_time"][k]) / (updated_test_taken)
+                        updated_accuracy = (existing_users["tests_taken"] * i["character_accuracy"] + request_data["character_accuracy"][k]) / (updated_test_taken)
+                        updated_character_data.append((updated_correct_characters, updated_incorrect_characters, updated_character_times,updated_accuracy, user_id, i["character_id"]))
+                        testsessions_data.append((updated_correct_characters, updated_incorrect_characters, updated_character_times, updated_accuracy, user_id, i["character_id"], sessionID))
+                    
             database_cursor.executemany(
-                """UPDATE og_user_characters SET correct_characters = %s, incorrect_characters = %s, character_time = %s WHERE user_id = %s and og_user_characters.character_id = %s;""", 
+                """UPDATE og_user_characters SET correct_characters = %s, incorrect_characters = %s, character_time = %s ,  character_accuracy = %s WHERE user_id = %s and og_user_characters.character_id = %s;""", 
                 updated_character_data
             )
 
             database_cursor.executemany(
-                "INSERT INTO `testsessions` (`correct_characters` , `incorrect_characters`, `character_time` , `user_id` , `character_id`, `sessionID`) VALUES(%s, %s, %s, %s, %s, %s) ;",
+                "INSERT INTO `testsessions` (`correct_characters` , `incorrect_characters`, `character_time` , `user_id` , `character_id`,`character_accuracy`, `sessionID`) VALUES(%s, %s, %s, %s, %s, %s, %s) ;",
                 testsessions_data
             )
 
-            database_cursor.execute("UPDATE users set words_per_min = %s, tests_taken = %s;", (updated_wpm, updated_test_taken,))
+            database_cursor.execute("UPDATE users set words_per_min = %s, tests_taken = %s;", (updated_wpm, updated_test_taken))
             database_connection.commit()
 
     except Exception as e:
