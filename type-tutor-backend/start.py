@@ -368,9 +368,52 @@ def generate_text():
     except Exception as e:
         return Response(json.dumps({'message': "Unauthorised"}), mimetype='application/json', status='400')
     
-    master, generated_text = user_model.generate_text(user_id)
+    generated_text, master, mastered_characters = user_model.generate_text(user_id)
     
-    return Response(json.dumps({"text": generated_text, "master": master}), mimetype='application/json', status='201')
+    return Response(json.dumps({"text": generated_text, "master": master, "mastered_characters": mastered_characters}), mimetype='application/json', status='201')
+
+@app.route('/generate_next_sequence', methods=['GET'])
+def generate_next_sequence():
+    token = request.args.get('token')
+    email = request.args.get('email')
+    text = request.args.get('text')
+    
+    try:
+        payload = jwt.decode(token, "123")
+        user_id = payload['sub']
+        error = None
+        database_connection = None
+        database_cursor = None
+        try:
+            database_connection = mysql.connector.connect(host='eu-cdbr-west-03.cleardb.net',
+                                                database='heroku_8af8fae4116d831',
+                                                user='b1282a2123d519',
+                                                password='29416dad')
+            if database_connection.is_connected():
+                database_cursor = database_connection.cursor()
+                database_cursor.execute("select * from Users where email = %s;", (email,))
+                user = database_cursor.fetchone()
+                if (not user) or  (not user[0] == user_id):
+                    return Response(json.dumps({'message': "Unauthorised"}), mimetype='application/json', status='400')
+        except Exception as e:
+            print(database_cursor.statement)
+            error = "Internal server error" % e
+        finally:
+            if database_connection and database_connection.is_connected():
+                if database_cursor:
+                    database_cursor.close()
+                database_connection.close()
+        if error: 
+            return Response(json.dumps({'message': "Unauthorised"}), mimetype='application/json', status='400')
+   
+    except Exception as e:
+        return Response(json.dumps({'message': "Unauthorised"}), mimetype='application/json', status='400')
+    
+    generated_text, master, mastered_characters = user_model.generate_text(user_id, text)
+    
+    return Response(json.dumps({"text": generated_text, "master": master, "mastered_characters": mastered_characters}), mimetype='application/json', status='201')
+
+
 
 if __name__ == "__main__":
     app.run(port=8000, debug=True)

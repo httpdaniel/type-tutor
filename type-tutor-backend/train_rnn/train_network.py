@@ -8,15 +8,13 @@ import re
 wordnet_data = "" 
 
 wordnet_data = "" 
-with open("./wordnet_words.txt") as wordnet_words_file:
+with open("train_rnn/frankinstein.txt") as wordnet_words_file:
     wordnet_data = wordnet_words_file.read()
 
 
 wordnet_data = re.sub("[^a-z ]+", "", wordnet_data)
-dist = set(wordnet_data.split(" "))
-wordnet_data = " ".join(dist)
 
-word_len = 100
+word_len = 50
 wordnet_data_len = len(wordnet_data)
 
 word_samples = []
@@ -43,11 +41,11 @@ for i in range(word_samples_len):
 
 
 model = Sequential()
-model.add(LSTM(128, input_shape=(word_len, characters_len)))
+model.add(LSTM(64, input_shape=(word_len, characters_len)))
 # model.add(LSTM(64, activation="relu"))
 model.add(Dense(characters_len, activation='softmax'))
 model.compile(loss='categorical_crossentropy', optimizer=RMSprop(lr=0.01))
 
 
-model.fit(x, y, batch_size=128, epochs=2)
-model.save("model.h5")
+model.fit(x, y, batch_size=128, epochs=30)
+model.save("rnn_model/model.h5")
