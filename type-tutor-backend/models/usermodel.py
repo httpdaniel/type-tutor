@@ -1,158 +1,184 @@
-from flask import Flask, Response, request,render_template
 import json
-import bcrypt
 import mysql.connector
 from mysql.connector import Error
-import jwt
-from datetime import datetime, timedelta
+import numpy as np
+import keras
+import re
+from scipy import stats
+import random
+import math
+import statistics
 
-# mysql  -h eu-cdbr-west-03.cleardb.net -P 3306  -u b1282a2123d519 -p
+def get_predicted_text(predictions, temperature, incorrect_characters, character_times, character_index_map):
+    most_common_predictions = predictions 
+    # * np.array(incorrect_characters) * np.array(character_times)
+    predictions = np.log(np.asarray(most_common_predictions).astype('float64')) / temperature
+    exponential_predictions = np.exp(predictions)
+    return np.argmax(np.random.multinomial(1, exponential_predictions / np.sum(exponential_predictions), 1))
 
-app = Flask(__name__)
+def is_master(incorrect_characters, wpm):
+    incorrect_characters[0] = 1
+    errors = np.array([i for i in incorrect_characters])
+    mastered_errors = statistics.mean(errors) > 0.9 and ((errors >= 0.9).sum() == errors.size).astype(np.int)
+    return mastered_errors and wpm >= 40
 
-# def calculate_avg(old_average):
-#     old_avg = (new_mean * new_total_occurances - old_value ) / (old_total_occurances)
-#     new_avg = (incorrect_characters['a'] * total_occurances['a'] + current_a_value) / (total_occurances['a'] + 1)
-#     # do for incorrect, correct + times
-#     old_values_exist = False
-#     for k,v in old_correct_characters.items():
-#         if v > 0:
-#             old_values_exist = True
-#             break
+def min_max_normalisation(prob, character_index_map):
+    prob_a = [None for i in range(len(character_index_map))]
+    inverse_index_map = {}
+    for k, v in character_index_map.items():
+        prob_a[character_index_map[k]] = float(prob[k])
+        inverse_index_map[character_index_map[k]] = k
 
-#     if old_values_exist:
+    check_unlock_next = True
 
-def calculate_json_avg(correct_values, incorrect_values):
-    incorrect_json = {}
-    correct_json = {}
-    total_occurrences = {}
-    incorrect_sum = 0
-    correct_sum =0 
-    total = 0 
+    for i in range(len(prob_a)):
+        prob_a[i] = (prob_a[i] - float(min(prob_a))) / (max(prob_a) - min(prob_a))
+        # if prob_a[i] == 0 and (inverse_index_map[i] == "e" or inverse_index_map[i] == "n" or inverse_index_map[i] == "i" or inverse_index_map[i] == "t" or inverse_index_map[i] == "r"):
+        #     check_unlock_next = False
+        # prob_a[i] = 1
+    
+    # unlock_seq = ['e', 'n', 'i', 't', 'r', 'l', 's', 'a', 'u', 'o', 'd', 'y', 'c', 'h', 'g', 'm', 'p', 'b', 'k', 'v', 'w', 'f', 'z', 'x', 'q', 'j']
+    return prob_a
 
+def generate_text(user_id):
+    print(user_id)
+    from keras import backend as K 
+    K.clear_session()
 
-    for correct,incorrect in zip(correct_values.items(), incorrect_values.items()):
-        average_correct = correct[1] / (correct[1] + incorrect[1])
-        average_incorrect = incorrect[1] / (correct[1] + incorrect[1])
-        occurrences = (correct[1] + incorrect[1])
-        incorrect_json[incorrect[0]] = average_incorrect
-        correct_json[correct[0]] = average_correct
-        total_occurrences[incorrect[0]] = occurrences
-        incorrect_sum = incorrect_sum + incorrect[1]
-        correct_sum = correct_sum + correct[1]
-        total = total + occurrences
-    correct_avg = correct_sum/ total
-    incorrect_avg = incorrect_sum/total
-    return (correct_json, incorrect_json, total_occurrences, correct_avg, incorrect_avg)
+    word_len = 100
+    wordnet_data = "" 
+    model = keras.models.load_model('./rnn_model/model.h5')
 
+    with open("./train_rnn/wordnet_words.txt") as wordnet_words_file:
+            wordnet_data = wordnet_words_file.read()
 
+    wordnet_data = re.sub("[^a-z ]+", "", wordnet_data)
+    dist = " ".join(set(wordnet_data.split(" ")))
+    first_letters_dist = {
+    }
+    wordnet_data = dist
+    for i in dist:
+        if len(i):
+            if i[0] not in first_letters_dist:
+                first_letters_dist[i[0]] = 0
+            first_letters_dist[i[0]] += 1
 
+    characters = sorted(set(wordnet_data))
+    characters_len = len(characters)
 
+    character_index_map = {character: characters.index(character) for character in characters}
+    
+    database_connection = None
+    database_cursor = None
+    error = None
+    incorrect_characters = {}
+    character_times = {}
+    try: 
+        database_connection = mysql.connector.connect(
+            host='eu-cdbr-west-03.cleardb.net',
+            database='heroku_8af8fae4116d831',
+            user='b1282a2123d519',
+            password='29416dad'
+        )
+        if database_connection.is_connected():
+            database_cursor = database_connection.cursor(dictionary=True)
+            database_cursor.execute("select words_per_min, incorrect_characters, correct_characters, character_time, character_name from og_user_characters inner join characters on characters.character_id = og_user_characters.character_id inner join users on og_user_characters.user_id = users.user_id where users.user_id = %s;", (user_id,))
+            character_data = database_cursor.fetchall()
+            for i in character_data:
+                try:
+                    incorrect_characters[i["character_name"]] = float(i["incorrect_characters"]) / float((i["incorrect_characters"] + i["correct_characters"]))
+                    character_times[i["character_name"]] = float(i["character_time"])
+                except:
+                    incorrect_characters[i["character_name"]] = 0
+                    character_times[i["character_name"]] = 0
 
+            wpm = character_data[0]["words_per_min"]
 
-        
+    except Exception as e:
+        print(e)
+        return "", False
+        pass
+    finally:
+        if database_connection and database_connection.is_connected():
+            if database_cursor:
+                database_cursor.close()
+            database_connection.close()
+    
+    fresh_start = False
+    for k, v in incorrect_characters.items():
+        if v == 0 and (k == "e" or k == "n" or k == "i" or k == "t" or k == "r"):
+            fresh_start = True
+            incorrect_characters[k] = 1
 
+    incorrect_characters[" "] = 0.01
+    character_times[" "] = 0.01
 
+    if not fresh_start and wpm >= 40:
+        unlock_next_character = False
+        found_zero_character = False
+        next_character_index = 0
+        unlock_seq = ['e', 'n', 'i', 't', 'r', 'l', 's', 'a', 'u', 'o', 'd', 'y', 'c', 'h', 'g', 'm', 'p', 'b', 'k', 'v', 'w', 'f', 'z', 'x', 'q', 'j']
+        for i in unlock_seq:
+            if found_zero_character and incorrect_characters[i] != 0:
+                unlock_next_character = False
+                break
+            if incorrect_characters[i] == 0:
+                found_zero_character = True
+            elif i > 0.1:
+                unlock_next_character = False
+                break
+            else:
+                next_character_index += 1
             
+        if unlock_next_character:
+            mean_character_weights = []
+            for i in range(next_character_index-1):
+                if v != 0:
+                    mean_character_weights.append(incorrect_characters[i])
+            incorrect_characters[unlock_seq[next_character_index]] = statistics.mean(mean_character_weights)
 
+    incorrect_characters = min_max_normalisation(incorrect_characters, character_index_map)
+    character_times = min_max_normalisation(character_times, character_index_map)
+
+    print(character_times)
+    print(incorrect_characters)
+
+    all_generated_text = "a"
+    
+    for _ in range(1):
+        generate_text = all_generated_text.split(" ")[-1] + " "
+        print(generate_text)
+        for i in range(100 - len(generate_text)):
+            if len(generate_text.split(" ")[-1]) >= 6:
+                add_space_prob = len(generate_text.split(" ")[-1])*0.1
+                add_space = random.choices(["", " "], weights=[1 - add_space_prob, add_space_prob ] , k=1 )
+                if add_space == " " or add_space_prob > 1.1:
+                    generate_text += " "
+                    continue
+
+            seed_data = np.zeros((1, word_len, characters_len))
+            for j in range(len(generate_text)):
+                seed_data[0,j,character_index_map[generate_text[j]]] = 1.
             
-    # get the old average for the keys (time correctness incorrectness)
+            preds = model.predict(seed_data)[0]
+            new_character = characters[get_predicted_text(preds, 0.6, incorrect_characters, character_times, character_index_map)]
+            generate_text += new_character
 
-# update new values for keys (time correctness incorrectness)
-
-
-# # @app.route('/minisession', methods=['POST'])
-# def mini_session_fn(request_data):
-#     # try:
-#     #     request_data = json.loads(request.data)
-#     # except:
-#     #     return Response(json.dumps({'message': "Invalid JSON data"}), mimetype='application/json', status='400')
-
+        all_generated_text = generate_text if len(all_generated_text) == 1 else " ".join(all_generated_text.split(" ")[:-2]) + generate_text
     
-    
-#     incorrect_characters  = request_data.get("incorrect_characters")
-#     correct_characters  = request_data.get("correct_characters")
-#     correct_characters_avg, incorrect_characters_avg, total_occurances, correct_avg, incorrect_avg  = calculate_json_avg(correct_characters, incorrect_characters)
-#     character_time   = request_data.get("character_time")
-#     # character_id    = request_data.get("character_id")
-#     user_id     = request_data.get("user_id")
+    K.clear_session()
+    print(all_generated_text)
+    return (all_generated_text, int(is_master(incorrect_characters, wpm)))
 
 
 
-#     # correct_characters_avg = json.dumps(correct_characters_avg)
-#     # incorrect_characters_avg = json.dumps(incorrect_characters_avg)
-#     # total_occurances  = json.dumps(total_occurances)
-#     # character_time = json.dumps(character_time)
-
-
-
-#     database_connection = None
-#     database_cursor = None
-#     error = None
-#     try:
-#         database_connection = mysql.connector.connect(host='eu-cdbr-west-03.cleardb.net',
-#                                             database='heroku_8af8fae4116d831',
-#                                             user='b1282a2123d519',
-#                                             password='29416dad')
-#         if database_connection.is_connected():
-#             print("Database Connected")
-#             database_cursor = database_connection.cursor()
-#             id = None
-#             character_id = None
-#             for (k,v) in correct_characters_avg.items():
-#                 print("K is ", k)
-#                 database_cursor.execute("SELECT character_id FROM CHARACTERS WHERE CHARACTER_NAME = '{k}' limit 1 ;".format(k = k))
-#                 user_exists = None
-#                 for i in database_cursor:
-#                     character_id = i[0]
-#                 print(incorrect_characters_avg[k],correct_characters_avg[k], total_occurances[k], character_time[k], character_id, user_id)
-#                 database_cursor.execute("SELECT user_id FROM og_user_characters WHERE user_id = {k} and character_id = {c};".format(k = user_id, c = character_id))
-#                 for i in database_cursor:
-#                     user_exists = i[0]
-#                 print("User exists", user_exists)
-
-#                 if user_exists == None:
-#                     print("User exists", user_exists)
-#                     database_cursor.execute("INSERT INTO `OG_USER_CHARACTERS` (`incorrect_characters` , `correct_characters`  , `total_occurances` , `character_time` , `character_id` , `user_id`) VALUES(%s, %s, %s, %s, %s, %s) ;",(incorrect_characters_avg[k],correct_characters_avg[k], total_occurances[k], character_time[k], character_id, user_id ))
-#                 else:
-#                     database_cursor.execute("update og_user_characters set incorrect_characters = {incorrect_characters_avg}, correct_characters  = {correct_characters_avg}, total_occurances = {total_occurances}, character_time = {character_time} where character_id = {character_id} and user_id = {user_id} ;".format(incorrect_characters_avg = incorrect_characters_avg[k],correct_characters_avg =correct_characters_avg[k], total_occurances =total_occurances[k], character_time = character_time[k], character_id = character_id, user_id = user_id  ))
-
-#                 database_connection.commit()
-
-#             # database_cursor.execute("INSERT INTO `user_characters` (`incorrect_characters` , `correct_characters`  , `total_occurances` , `character_time` , `character_id` , `user_id`  ) VALUES(%s, %s, %s, %s, %s, %s);",(incorrect_characters_avg,correct_characters_avg, total_occurances, character_time, character_id, user_id))
-#         else:
-#             error = "There was a problem connecting to the database"
-#     except Exception as e:
-#         print(database_cursor.statement)
-#         error = "Internal server error " + e
-#     finally:
-#         if database_connection and database_connection.is_connected():
-#             if database_cursor:
-#                 database_cursor.close()
-#             database_connection.close()
-    
-#     if error:
-#         return error
-#     else:
-#         return None
-
-
-# @app.route('/minisession', methods=['POST'])
-def full_session_fn(request_data):
-    # try:
-    #     request_data = json.loads(request.data)
-    # except:
-    #     return Response(json.dumps({'message': "Invalid JSON data"}), mimetype='application/json', status='400')
-
-    
-    
+def store_session_details(request_data):
     incorrect_characters  = request_data.get("incorrect_characters")
+    wpm  = request_data.get("wpm")
     correct_characters  = request_data.get("correct_characters")
-    correct_characters_avg, incorrect_characters_avg, total_occurances, correct_avg, incorrect_avg  = calculate_json_avg(correct_characters, incorrect_characters)
     character_time   = request_data.get("character_time")
     # character_id    = request_data.get("character_id")
     user_id     = request_data.get("user_id")
-    WPM     = request_data.get("WPM")
     character_accuracy    = request_data.get("character_accuracy")
     totalAccuracy    = request_data.get("total_accuracy")
     #accuracy
@@ -163,134 +189,72 @@ def full_session_fn(request_data):
     # character_time = json.dumps(character_time)
 
 
-
     database_connection = None
     database_cursor = None
     error = None
-    try:
-        database_connection = mysql.connector.connect(host='eu-cdbr-west-03.cleardb.net',
-                                            database='heroku_8af8fae4116d831',
-                                            user='b1282a2123d519',
-                                            password='29416dad')
+    try: 
+        database_connection = mysql.connector.connect(
+            host='eu-cdbr-west-03.cleardb.net',
+            database='heroku_8af8fae4116d831',
+            user='b1282a2123d519',
+            password='29416dad'
+        )
         if database_connection.is_connected():
-            print("Database Connected")
-            database_cursor = database_connection.cursor(buffered = True)
-            id = None
-            character_id = None
+            database_cursor = database_connection.cursor(dictionary=True)
 
-            #print(database_cursor)
-
-            user_exists = None
-            
-            database_cursor.execute(" select user_id from testsessions where user_id = {k};".format(k = user_id))
-            for i in database_cursor:
-                user_exists = i[0]
-
-            if user_exists is None:
+            print(user_id)
+            database_cursor.execute("SELECT MAX(sessionID) as sessionID FROM sessionstats WHERE user_id = '{k}' limit 1 ;".format(k = user_id))
+            lastSession = database_cursor.fetchone()
+            if not lastSession["sessionID"]:
                 sessionID = 1
-                print("Submitting first session for user " + str(user_id))
-
             else:
-                database_cursor.execute("SELECT MAX(sessionID) FROM testsessions WHERE user_id = '{k}' limit 1 ;".format(k = user_id))
-                for i in database_cursor:
-                    lastSession = i[0]
-                sessionID = int(lastSession) + 1
-                print("Submitting session " + str(sessionID) + " for user " + str(user_id))
+                print(lastSession["sessionID"])
+                sessionID = int(lastSession["sessionID"]) + 1
 
-            database_cursor.execute("INSERT INTO `sessionstats` (`user_id` , `WPM`  , `sessionID`, `totalAccuracy`) VALUES(%s, %s, %s, %s) ;",(user_id, WPM, sessionID, totalAccuracy))
+            database_cursor.execute("INSERT INTO `sessionstats` (`user_id` , `WPM`  , `sessionID`, `totalAccuracy`) VALUES(%s, %s, %s, %s) ;",(user_id, wpm, sessionID, totalAccuracy))
 
-            for (k,v) in correct_characters_avg.items():
-                print("K is ", k)
-                database_cursor.execute("SELECT character_id FROM CHARACTERS WHERE CHARACTER_NAME = '{k}' limit 1 ;".format(k = k))
-                user_exists = None
-                for i in database_cursor:
-                    character_id = i[0]
-                print(incorrect_characters_avg[k],correct_characters_avg[k], total_occurances[k], character_time[k], character_id, user_id)
-                database_cursor.execute("SELECT user_id FROM testsessions WHERE user_id = {k} and character_id = {c};".format(k = user_id, c = character_id))
+            database_cursor.execute("select * from Users where user_id = %s;", (user_id,))
+            existing_users = database_cursor.fetchone()
 
-            
-                for i in database_cursor:
-                    user_exists = i[0]
-                #print("User exists", user_exists)
+            updated_test_taken = existing_users["tests_taken"] + 1
 
+            updated_wpm = (existing_users["tests_taken"] * existing_users["words_per_min"] + wpm) / (updated_test_taken)
 
-                if user_exists == None:
-                    print("User exists", user_exists)
-                    database_cursor.execute("INSERT INTO `OG_USER_CHARACTERS` (`incorrect_characters` , `correct_characters`  , `total_occurances` , `character_time` , `character_accuracy` , `character_id` , `user_id`) VALUES(%s, %s, %s, %s, %s, %s, %s) ;",(incorrect_characters_avg[k],correct_characters_avg[k], total_occurances[k], character_time[k], character_accuracy[k], character_id, user_id ))
-                else:
-                    database_cursor.execute("update og_user_characters set incorrect_characters = {incorrect_characters_avg}, correct_characters  = {correct_characters_avg}, total_occurances = {total_occurances}, character_accuracy = {character_accuracy_ave},  character_time = {character_time}  where character_id = {character_id} and user_id = {user_id} ;".format(incorrect_characters_avg = incorrect_characters_avg[k],correct_characters_avg =correct_characters_avg[k], total_occurances =total_occurances[k], character_time = character_time[k], character_accuracy_ave = character_accuracy[k], character_id = character_id, user_id = user_id  ))
+            database_cursor.execute("select * from og_user_characters inner join characters on characters.character_id = og_user_characters.character_id where user_id = %s;", (user_id,))
+            character_data = database_cursor.fetchall()
 
-                database_cursor.execute("INSERT INTO `testsessions` (`incorrect_characters` , `correct_characters`  , `total_occurances` , `character_time` , `character_id` , `character_accuracy`, `user_id`, `sessionID`) VALUES(%s, %s, %s, %s, %s, %s, %s, %s) ;",(incorrect_characters_avg[k],correct_characters_avg[k], total_occurances[k], character_time[k], character_accuracy[k], character_id, user_id , sessionID))
-       
-                database_connection.commit()
+            updated_character_data = []
+            testsessions_data = []
+            for k, v in request_data["correct_characters"].items():
+                for i in character_data:
+                    if i['character_name'] == k:
+                        updated_correct_characters = (existing_users["tests_taken"] * i["correct_characters"] + request_data["correct_characters"][k]) / (updated_test_taken)
+                        updated_incorrect_characters = (existing_users["tests_taken"] * i["incorrect_characters"] + request_data["incorrect_characters"][k]) / (updated_test_taken)
+                        updated_character_times = (existing_users["tests_taken"] * i["character_time"] + request_data["character_time"][k]) / (updated_test_taken)
+                        updated_accuracy = (existing_users["tests_taken"] * i["character_accuracy"] + request_data["character_accuracy"][k]) / (updated_test_taken)
+                        updated_character_data.append((updated_correct_characters, updated_incorrect_characters, updated_character_times,updated_accuracy, user_id, i["character_id"]))
+                        testsessions_data.append((updated_correct_characters, updated_incorrect_characters, updated_character_times, updated_accuracy, user_id, i["character_id"], sessionID))
+                    
+            database_cursor.executemany(
+                """UPDATE og_user_characters SET correct_characters = %s, incorrect_characters = %s, character_time = %s ,  character_accuracy = %s WHERE user_id = %s and og_user_characters.character_id = %s;""", 
+                updated_character_data
+            )
 
-            # database_cursor.execute("INSERT INTO `user_characters` (`incorrect_characters` , `correct_characters`  , `total_occurances` , `character_time` , `character_id` , `user_id`  ) VALUES(%s, %s, %s, %s, %s, %s);",(incorrect_characters_avg,correct_characters_avg, total_occurances, character_time, character_id, user_id))
-        else:
-            error = "There was a problem connecting to the database"
+            database_cursor.executemany(
+                "INSERT INTO `testsessions` (`correct_characters` , `incorrect_characters`, `character_time` , `user_id` , `character_id`,`character_accuracy`, `sessionID`) VALUES(%s, %s, %s, %s, %s, %s, %s) ;",
+                testsessions_data
+            )
+
+            database_cursor.execute("UPDATE users set words_per_min = %s, tests_taken = %s;", (updated_wpm, updated_test_taken))
+            database_connection.commit()
+
     except Exception as e:
-        print(database_cursor.statement)
-        print(e)
-        error = "Internal server error "
+        print(e, "error")
+        return (-1, None)
     finally:
         if database_connection and database_connection.is_connected():
             if database_cursor:
                 database_cursor.close()
             database_connection.close()
-    
-    if error:
-        return error
-    else:
-        return None
-
-
-
-
-# count_letters  = {'p':20,'a':27}
-
-# prop_wrong_chars = {'a': 12/count_letters['a'], 'p':12/count_letters['p']}
-
-
-
-# # create a fun => set threshold for the wrong words
-# wrong_words = {}
-
-# Sessios based according to User -> Extrack dat based on Session ? After a few sessions may not be valid => if a user is not getting a word wrong anymore
-# For Any sessions -> proportion of wrong letters , wrong characters, proportion of words wrong session based -> For last 5 sections take data out -> current user based on that ( Check point)
-# Get rid of irrelevant user data after checkpoint. 
-
-# Minisessions based set of words => Adapt based on that. 
-# Login based Session Adaptation
-#  Cumulative Adaptation based on number of minisessions 
-# Time taken to complete mini session => Variable 
-
-# generate first letter 
-# most likely letter, incorrect word usages, times
-# Sequences -> Next letter, most incorrect used to generate letter, Time, Speed, lpm
-
-
-def test():
-    print(prop_wrong_chars)
-
-
-
-def proportion_of_wrongWords():
-    pass
-
-
-if __name__ == "__main__":
-    app.run(port=8000, debug=True)
-
-
-# CREATE TABLE User_Characters (
-# 	user_characters_id integer NOT NULL PRIMARY KEY AUTO_INCREMENT, 
-#     incorrect_characters JSON NOT NULL,
-#     correct_characters JSON NOT NULL,
-#     total_occurances JSON NOT NULL,
-# 	character_time JSON NOT NULL,
-#     CORRECT_AVERAGE FLOAT NOT NULL,
-#     INCORRECT_AVERAGE FLOAT NOT NULL, 
-#     character_id int NOT NULL, 
-#     user_id int NOT NULL, 
-# 	FOREIGN KEY (character_id) REFERENCES Characters(character_id),
-#     FOREIGN KEY (user_id) REFERENCES Users(user_id)
-# );
+    total_errors = [updated_character_data[i][0] / (updated_character_data[i][0] + updated_character_data[i][1]) for i in range(len(updated_character_data))]
+    return (1, int(is_master(total_errors, wpm)))

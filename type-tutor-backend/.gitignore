@@ -133,3 +133,4 @@ dmypy.json
 .vscode/
 
 database_conf
+endpoints/
