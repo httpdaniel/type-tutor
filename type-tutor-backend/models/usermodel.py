@@ -222,6 +222,7 @@ def generate_text(user_id, seed_sequence = None):
         return (all_generated_text, int(is_master(incorrect_characters_org, wpm)), mastered_chars)
 
 
+
 def store_session_details(request_data):
     incorrect_characters  = request_data.get("incorrect_characters")
     wpm  = request_data.get("wpm")
@@ -314,3 +315,68 @@ def store_session_details(request_data):
         except:
             total_errors.append(0)
     return (1, int(is_master(total_errors, wpm)))
+
+
+def get_session_details(request_data):
+
+    user_id   = request_data.get("user_id")
+    try: 
+        database_connection = mysql.connector.connect(
+            host='eu-cdbr-west-03.cleardb.net',
+            database='heroku_8af8fae4116d831',
+            user='b1282a2123d519',
+            password='29416dad'
+        )
+        if database_connection.is_connected():
+            database_cursor = database_connection.cursor(dictionary=True)
+
+            database_cursor.execute("SELECT MAX(sessionID) as sessionID FROM sessionstats WHERE user_id = '{k}' limit 1 ;".format(k = user_id))
+            lastSession = database_cursor.fetchone()
+            if not lastSession["sessionID"]:
+                return "No tests yet"
+            else:
+                sessionID = int(lastSession["sessionID"])
+
+        
+            database_cursor.execute("SELECT * FROM sessionstats WHERE (sessionID BETWEEN '{k}' and '{l}') and user_id = '{j}';".format(k = sessionID - 10, l = sessionID, j = user_id ))
+            sessionData = database_cursor.fetchall()
+            database_cursor.execute("SELECT AVG(correct_characters) AS correct_characters, AVG(incorrect_characters) AS incorrect_characters, AVG(character_accuracy) AS character_accuracy, characters.character_name FROM testsessions inner join characters on characters.character_id = testsessions.character_id where (sessionID between '{k}' and '{l}') and user_id = '{j}' group by testsessions.user_id, testsessions.character_id;".format(k = sessionID - 10, l = sessionID, j = user_id ))
+            aveData = database_cursor.fetchall()
+
+
+            characterDict = {}
+
+            wpmList = []
+            accList = []
+            for session in sessionData:
+                characterDict["session_" + str(session["sessionID"])] = {
+                    "WPM": session["WPM"],
+                    "totalAccuracy": session["totalAccuracy"]
+                }
+                if (session["WPM"] is not None):
+                    wpmList.append(session["WPM"])
+                if (session["totalAccuracy"] is not None):
+                    accList.append(session["totalAccuracy"])                    
+
+                for character in aveData:
+                    characterDict[character["character_name"]] = {"correct_characters": character["correct_characters"], "incorrect_characters": character["incorrect_characters"], "character_accuracy": character["character_accuracy"]}
+
+            if (len(wpmList) != 0):
+                wpm_ave = sum(wpmList) / len(wpmList)
+            else:
+                wpm_ave = None
+
+            if (len(accList) != 0):
+                acc_ave = sum(accList) / len(accList)
+            else:
+                acc_ave = None
+
+            characterDict["WPM_Average"] = wpm_ave
+            characterDict["Accuracy_Average"] = acc_ave
+     
+
+            return characterDict
+
+    except Exception as e:
+        print(e, "error")
+        return (-1, None)

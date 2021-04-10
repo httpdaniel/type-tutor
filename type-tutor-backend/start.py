@@ -415,7 +415,14 @@ def generate_next_sequence():
     
     return Response(json.dumps({"text": generated_text, "master": master, "mastered_characters": mastered_characters}), mimetype='application/json', status='201')
 
+@app.route('/getSessions', methods=['POST'])
+def getSessions():
+    try:
+        request_data = json.loads(request.data)
+    except:
+        return Response(json.dumps({'message': "Invalid JSON data"}), mimetype='application/json', status='400')
 
+    return user_model.get_session_details(request_data)
 
 if __name__ == "__main__":
     app.run(port=8000, debug=True)
