@@ -22,6 +22,7 @@ def login():
     database_connection = None
     database_cursor = None
     error = None
+    token = ""
     try:
         database_connection = mysql.connector.connect(host='eu-cdbr-west-03.cleardb.net',
                                             database='heroku_8af8fae4116d831',
@@ -39,7 +40,8 @@ def login():
                 token = jwt.encode(payload, "123", algorithm='HS256')
             else:
                 error = "Invalid login credentials"
-
+        else:
+            error = "error connecting to database"
     except Exception as e:
         print(database_cursor.statement)
         error = "Internal server error" % e
