@@ -42,7 +42,7 @@ def login():
 
     except Exception as e:
         print(database_cursor.statement)
-        error = "Internal server error" % e
+        error = "Internal server error: {error}".format(error = e)
     finally:
         if database_connection and database_connection.is_connected():
             if database_cursor:
@@ -137,6 +137,15 @@ def register():
 def seed():
     if request.method == 'GET':
         return seed()
+
+@app.route('/getSessions', methods=['POST'])
+def getSessions():
+    try:
+        request_data = json.loads(request.data)
+    except:
+        return Response(json.dumps({'message': "Invalid JSON data"}), mimetype='application/json', status='400')
+
+    return user_model.get_session_details(request_data)
 
 
 @app.route('/submit', methods=['POST'])
