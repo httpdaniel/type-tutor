@@ -1,0 +1,22 @@
+.SampleWords {
+  padding: 1rem;
+  font-size: 1.1rem;
+  border-color: gray;
+  color: #b2b2b2;
+  width: 100%;
+  height: fit-content;
+}
+
+span {
+  margin: 0rem;
+  padding: 0.2rem;
+  display: inline-block;
+}
+
+span.active-word-correct {
+  background-color: lightgray;
+}
+
+span.active-word-wrong {
+  background-color: rgb(253, 67, 67);
+}

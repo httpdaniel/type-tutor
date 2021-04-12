@@ -1,24 +1,32 @@
-import logo from './logo.svg';
-import './App.css';
+import './styles/App.scss';
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+import Login from './scenes/Login';
+import Register from './scenes/Register';
+import UpdatePassword from './scenes/UpdatePassword';
+import UpdateEmail from './scenes/UpdateEmail';
+import DeleteAccount from './scenes/DeleteAccount';
+import MainPage from './scenes/MainPage';
+import Profile from './scenes/Profile';
+import Navbar from './components/Navbar';
+import Visualization from './scenes/Visualization';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div className="App">
+        <Navbar />
+        <Switch>
+          <Route path="/login" component={Login} />
+          <Route path="/register" component={Register} />
+          <Route path="/update_password" component={UpdatePassword} />
+          <Route path="/update_email" component={UpdateEmail} />
+          <Route path="/delete_account" component={DeleteAccount} />
+          <Route path="/profile" component={Profile} />
+          <Route path="/" exact component={MainPage} />
+          <Route path="/visualization" exact component={Visualization} />
+        </Switch>
+      </div>
+    </Router>
   );
 }
 

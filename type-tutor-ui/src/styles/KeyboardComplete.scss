@@ -1,0 +1,69 @@
+input {
+  width: 100%;
+  height: 100px;
+  padding: 20px;
+  font-size: 20px;
+  border: none;
+  box-sizing: border-box;
+}
+
+.simple-keyboard {
+  max-width: 90%;
+  margin: auto;
+}
+
+.keyboard {
+  align-self: center;
+  text-align: center;
+  width: 100%;
+}
+
+input {
+  text-align: center;
+  margin: auto auto 0.5rem auto;
+  width: 90%;
+  border: 1px solid gray;
+  font-size: 1.5rem;
+  /* border-radius: 20px; */
+}
+
+input:focus {
+  border-radius: 20px;
+}
+
+.Character {
+  text-align: center;
+  font-size: 1.5em;
+  white-space: pre;
+  font-family: monospace;
+}
+
+.Character-current {
+  padding: 0;
+  animation: blink 0.8s infinite;
+}
+
+.Character-out {
+  padding: 0;
+  color: #444444;
+}
+
+.Character-in {
+  padding: 0;
+}
+
+@mixin animation-mixin($name, $from, $to) {
+  @keyframes #{$name} {
+    0% {
+      background: #444444;
+    }
+    50% {
+      background: #bbbbbb00;
+    }
+    100% {
+      background: #444444;
+    }
+  }
+}
+
+@include animation-mixin(blink, 0, 100%);
