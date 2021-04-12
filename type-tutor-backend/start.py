@@ -37,7 +37,7 @@ def login():
                     'exp':datetime.utcnow() + timedelta(days=5),
                     'sub': user[0]
                 }
-                token = jwt.encode(payload, "123", algorithm='HS256')
+                token = jwt.encode(payload, "123", algorithm='HS256', options={"verify_signature": False})
             else:
                 error = "Invalid login credentials"
         else:
@@ -54,7 +54,7 @@ def login():
     if error:
         return Response(json.dumps({"message": error }), mimetype='application/json', status='400')
     else:
-        return Response(json.dumps({"message": token.decode("utf-8")}), mimetype='application/json', status='200')
+        return Response(json.dumps({"message": token}), mimetype='application/json', status='200')
    
     
 @app.route('/typing', methods=['POST'])
@@ -68,7 +68,7 @@ def typing():
         return Response(json.dumps({'message': "Unauthorised"}), mimetype='application/json', status='400')
 
     try:
-        payload = jwt.decode(request_data.get("token"), "123")
+        payload = jwt.decode(request_data.get("token"), "123", options={"verify_signature": False})
         print(payload['sub'])
     except Exception as e:
         return Response(json.dumps({'message': "Unauthorised"}), mimetype='application/json', status='400')
@@ -150,7 +150,7 @@ def submit():
     
 
     try:
-        payload = jwt.decode(request_data.get("token"), "123")
+        payload = jwt.decode(request_data.get("token"), "123", options={"verify_signature": False})
         user_id = payload['sub']
         email = request_data.get("email")
         error = None
@@ -206,7 +206,7 @@ def delete_account():
     database_cursor = None
     error = None
     try:
-        payload = jwt.decode(token, "123")
+        payload = jwt.decode(token, "123", options={"verify_signature": False})
         user_id = payload['sub']
         
         database_connection = mysql.connector.connect(host='eu-cdbr-west-03.cleardb.net',
@@ -252,7 +252,7 @@ def update_password():
     database_cursor = None
     error = None
     try:
-        payload = jwt.decode(token, "123")
+        payload = jwt.decode(token, "123", options={"verify_signature": False})
         user_id = payload['sub']
         
         database_connection = mysql.connector.connect(host='eu-cdbr-west-03.cleardb.net',
@@ -280,7 +280,7 @@ def update_password():
     if error:
         return Response(json.dumps({"message": error }), mimetype='application/json', status='400')
     else:
-        return Response(json.dumps({"message": "successfully deleted account"}), mimetype='application/json', status='200')
+        return Response(json.dumps({"message": "successfully updated password"}), mimetype='application/json', status='200')
    
 
 
@@ -299,7 +299,7 @@ def email():
     database_cursor = None
     error = None
     try:
-        payload = jwt.decode(token, "123")
+        payload = jwt.decode(token, "123", options={"verify_signature": False})
         user_id = payload['sub']
         database_connection = mysql.connector.connect(host='eu-cdbr-west-03.cleardb.net',
                                             database='heroku_8af8fae4116d831',
@@ -331,7 +331,7 @@ def email():
     if error:
         return Response(json.dumps({"message": error }), mimetype='application/json', status='400')
     else:
-        return Response(json.dumps({"message": "successfully deleted account"}), mimetype='application/json', status='200')
+        return Response(json.dumps({"message": "successfully updated email"}), mimetype='application/json', status='200')
    
 
 @app.route('/generate_text', methods=['GET'])
@@ -340,7 +340,7 @@ def generate_text():
     email = request.args.get('email')
     
     try:
-        payload = jwt.decode(token, "123")
+        payload = jwt.decode(token, "123", options={"verify_signature": False})
         user_id = payload['sub']
         error = None
         database_connection = None
@@ -381,7 +381,7 @@ def generate_next_sequence():
     text = request.args.get('text')
     
     try:
-        payload = jwt.decode(token, "123")
+        payload = jwt.decode(token, "123", options={"verify_signature": False})
         user_id = payload['sub']
         error = None
         database_connection = None
