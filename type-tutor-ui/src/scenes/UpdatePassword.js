@@ -4,11 +4,6 @@ import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import TextField from '@material-ui/core/TextField';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Checkbox from '@material-ui/core/Checkbox';
-import Link from '@material-ui/core/Link';
-import Grid from '@material-ui/core/Grid';
-import Box from '@material-ui/core/Box';
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
@@ -35,44 +30,29 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function Login() {
+function UpdatePassword() {
   const classes = useStyles();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [old_password, setOldPassword] = useState('');
   const [errorText, setErrorText] = useState('');
 
   function handleSubmit(event) {
-    let error = false
     event.preventDefault();
-    //console.log( 'Email:', email, 'Password: ', password); 
-    fetch('/login', {
-      method: 'POST',
+    fetch('/update_password', {
+      method: 'PUT',
       headers: {
         'Content-type': 'application/json',
       },
-      body: JSON.stringify({email: email, password: password}),
+      body: JSON.stringify({email: email, password: password, token: localStorage.getItem('jwt') || '', old_password: old_password}),
     })
-    .then(res => {
-      error = !res.ok
-      console.log(res)
-      return res.json()
-    })
+    .then(res => res.json())
     .then(
       (res) => {
         console.log(res)
         let str = JSON.stringify(res)
         str = str.substring(12, str.length - 2)
-        if(error)
-        {
-          setErrorText(str)
-        }
-        else
-        {
-          setErrorText('')
-          localStorage.setItem('jwt', str)
-          localStorage.setItem('email', email)
-          window.location.href = "/";
-        }
+        setErrorText(str)
       }); 
   }
 
@@ -84,7 +64,7 @@ function Login() {
           <LockOutlinedIcon />
         </Avatar>
         <Typography component="h1" variant="h5">
-          Sign in
+          Update password
         </Typography>
         <Typography component="h3" variant="h6" style={{color: "red"}}>
           {errorText}
@@ -108,13 +88,25 @@ function Login() {
             margin="normal"
             required
             fullWidth
+            name="old_password"
+            label="Old Password"
+            type="password"
+            id="old_password"
+            autoComplete="current-password"
+            value={old_password}
+            onInput={ e=>setPassword(e.target.value)}
+          />
+          <TextField
+            variant="outlined"
+            margin="normal"
+            required
+            fullWidth
             name="password"
-            label="Password"
+            label="New Password"
             type="password"
             id="password"
-            autoComplete="current-password"
             value={password}
-            onInput={ e=>setPassword(e.target.value)}
+            onInput={ e=>setOldPassword(e.target.value)}
           />
           <Button
             type="submit"
@@ -123,15 +115,8 @@ function Login() {
             color="primary"
             className={classes.submit}
           >
-            Sign In
+            Update Password
           </Button>
-          <Grid container justify="flex-end">
-            <Grid item>
-              <Link href="/register" variant="body2">
-                {"Don't have an account? Sign Up"}
-              </Link>
-            </Grid>
-          </Grid>
         </form>
       </div>
     </Container>
@@ -142,4 +127,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default UpdatePassword;

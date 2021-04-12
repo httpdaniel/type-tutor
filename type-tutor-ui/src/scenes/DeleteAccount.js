@@ -4,11 +4,6 @@ import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import TextField from '@material-ui/core/TextField';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Checkbox from '@material-ui/core/Checkbox';
-import Link from '@material-ui/core/Link';
-import Grid from '@material-ui/core/Grid';
-import Box from '@material-ui/core/Box';
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
@@ -35,7 +30,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function Login() {
+function UpdatePassword() {
   const classes = useStyles();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -44,13 +39,12 @@ function Login() {
   function handleSubmit(event) {
     let error = false
     event.preventDefault();
-    //console.log( 'Email:', email, 'Password: ', password); 
-    fetch('/login', {
-      method: 'POST',
+    fetch('/delete_account', {
+      method: 'DELETE',
       headers: {
         'Content-type': 'application/json',
       },
-      body: JSON.stringify({email: email, password: password}),
+      body: JSON.stringify({email: email, password: password, token: localStorage.getItem('jwt') || ''}),
     })
     .then(res => {
       error = !res.ok
@@ -69,8 +63,8 @@ function Login() {
         else
         {
           setErrorText('')
-          localStorage.setItem('jwt', str)
-          localStorage.setItem('email', email)
+          localStorage.removeItem('jwt');
+          localStorage.removeItem('email');
           window.location.href = "/";
         }
       }); 
@@ -84,7 +78,7 @@ function Login() {
           <LockOutlinedIcon />
         </Avatar>
         <Typography component="h1" variant="h5">
-          Sign in
+          Delete account
         </Typography>
         <Typography component="h3" variant="h6" style={{color: "red"}}>
           {errorText}
@@ -112,7 +106,6 @@ function Login() {
             label="Password"
             type="password"
             id="password"
-            autoComplete="current-password"
             value={password}
             onInput={ e=>setPassword(e.target.value)}
           />
@@ -120,18 +113,11 @@ function Login() {
             type="submit"
             fullWidth
             variant="contained"
-            color="primary"
+            style={{backgroundColor: "red", color: "white" }}
             className={classes.submit}
           >
-            Sign In
+            Delete Account
           </Button>
-          <Grid container justify="flex-end">
-            <Grid item>
-              <Link href="/register" variant="body2">
-                {"Don't have an account? Sign Up"}
-              </Link>
-            </Grid>
-          </Grid>
         </form>
       </div>
     </Container>
@@ -142,4 +128,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default UpdatePassword;

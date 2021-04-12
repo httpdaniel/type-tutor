@@ -39,11 +39,12 @@ function Register() {
   const classes = useStyles();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errorText, setErrorText] = useState('');
 
   function handleSubmit(event) {
     event.preventDefault();
     //console.log( 'Email:', email, 'Password: ', password); 
-    fetch('/login', {
+    fetch('/register', {
       method: 'POST',
       headers: {
         'Content-type': 'application/json',
@@ -51,7 +52,12 @@ function Register() {
       body: JSON.stringify({email: email, password: password}),
     })
       .then(res => res.json())
-      .then(res => console.log(res));
+      .then(
+        (res) => {
+          console.log(res)
+          let str = JSON.stringify(res)
+          setErrorText(str.substring(12, str.length - 2))
+        });      
   }
 
   return (
@@ -64,31 +70,11 @@ function Register() {
         <Typography component="h1" variant="h5">
           Sign up
         </Typography>
+        <Typography component="h3" variant="h7" style={{color: "red"}}>
+          {errorText}
+        </Typography>
         <form className={classes.form} noValidate onSubmit={handleSubmit}>
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                autoComplete="fname"
-                name="firstName"
-                variant="outlined"
-                required
-                fullWidth
-                id="firstName"
-                label="First Name"
-                autoFocus
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                variant="outlined"
-                required
-                fullWidth
-                id="lastName"
-                label="Last Name"
-                name="lastName"
-                autoComplete="lname"
-              />
-            </Grid>
             <Grid item xs={12}>
               <TextField
                 variant="outlined"
@@ -117,9 +103,15 @@ function Register() {
               />
             </Grid>
             <Grid item xs={12}>
-              <FormControlLabel
-                control={<Checkbox value="allowExtraEmails" color="primary" />}
-                label="I agree to the ToS."
+              <TextField
+                variant="outlined"
+                required
+                fullWidth
+                name="password"
+                label="Re-type Password"
+                type="password"
+                id="re-password"
+                autoComplete="current-password"
               />
             </Grid>
           </Grid>
