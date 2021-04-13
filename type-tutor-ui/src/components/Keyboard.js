@@ -60,6 +60,30 @@ function KeyboardComplete() {
     return result;
   };
 
+  function endGame() {
+    setGameOver(true);
+    const incorrect_info = [];
+    const unique = [...new Set(incorrect)];
+    for (let i = 0; i < unique.length; i++) {
+      const incorrectChar = unique[i];
+      const num_time = count(incorrect.toString(), unique[i]);
+      const appears = count(text, unique[i]);
+      const acc = appears - num_time >= 0 ? (appears - num_time) / appears : 0;
+      incorrect_info.push({
+        incorrect_char: incorrectChar,
+        num_times: num_time,
+        num_appear: appears,
+        char_acc: acc,
+      });
+    }
+    const game_info = { wpm: wpm, total_accuracy: accuracy, incorrect_chars: incorrect_info };
+    console.log(game_info);
+    const token = localStorage.getItem('jwt');
+    const email = localStorage.getItem('email');
+    console.log(`Token: ${token}`);
+    console.log(`Email: ${email}`);
+  }
+
   useKeyPress((key) => {
     if (!startTime) {
       setStartTime(currentTime());
@@ -70,23 +94,7 @@ function KeyboardComplete() {
 
     if (updatedToTypeChar === '') {
       console.log('OVER');
-      setGameOver(true);
-      const incorrect_info = [];
-      const unique = [...new Set(incorrect)];
-      for (let i = 0; i < unique.length; i++) {
-        const incorrectChar = unique[i];
-        const num_time = count(incorrect.toString(), unique[i]);
-        const appears = count(text, unique[i]);
-        const acc = appears - num_time >= 0 ? (appears - num_time) / appears : 0;
-        incorrect_info.push({
-          incorrect_char: incorrectChar,
-          num_times: num_time,
-          num_appear: appears,
-          char_acc: acc,
-        });
-      }
-      const game_info = { wpm: wpm, total_accuracy: accuracy, incorrect_chars: incorrect_info };
-      console.log(game_info);
+      endGame();
     }
 
     if (key === currChar) {

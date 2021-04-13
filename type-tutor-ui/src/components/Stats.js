@@ -24,7 +24,7 @@ function Stats(props) {
 
   for(let i = 0; i<alphabet.length; i++) {
     const open = keyset.includes(alphabet[i]);
-    keybox.push(<KeysetBox keys={[alphabet[i], open]}></KeysetBox>)
+    keybox.push(<KeysetBox key={i} keys={[alphabet[i], open]}></KeysetBox>)
   }
 
   return (

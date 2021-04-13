@@ -3,7 +3,6 @@ import React from 'react';
 import '../styles/App.scss';
 
 function KeysetBox(props) {
-  console.log(props);
   const { keys } = props;
 
   return (
