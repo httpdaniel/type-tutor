@@ -94,7 +94,7 @@ function UpdatePassword() {
             id="old_password"
             autoComplete="current-password"
             value={old_password}
-            onInput={ e=>setPassword(e.target.value)}
+            onInput={ e=>setOldPassword(e.target.value)}
           />
           <TextField
             variant="outlined"
@@ -106,7 +106,7 @@ function UpdatePassword() {
             type="password"
             id="password"
             value={password}
-            onInput={ e=>setOldPassword(e.target.value)}
+            onInput={ e=>setPassword(e.target.value)}
           />
           <Button
             type="submit"

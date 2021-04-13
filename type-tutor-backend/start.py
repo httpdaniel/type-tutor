@@ -40,7 +40,7 @@ def login():
                     'exp':datetime.utcnow() + timedelta(days=5),
                     'sub': user[0]
                 }
-                token = jwt.encode(payload, "123", algorithm='HS256', options={"verify_signature": False})
+                token = jwt.encode(payload, "123", algorithm='HS256')
             else:
                 error = "Invalid login credentials"
         else:
