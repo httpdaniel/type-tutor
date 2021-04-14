@@ -13,11 +13,6 @@ import Stats from './Stats';
 const incorrect = [];
 
 function KeyboardComplete() {
-  // 'seem year keep if also give between those what ask get
-  // one or stand now like state or how system and
-  // can great late under mean so be find know do person must
-  // make number give system get turn lead fact a head call all
-  // good tell run want when need each early very may you problem off life eye';
   const text = 'to tar it or too it are trio oar air ariot ear';
   const wordList = text.split(' ');
   const [input, setInput] = useState('');
@@ -173,9 +168,7 @@ function KeyboardComplete() {
       setCurrChar(toTypeChar.charAt(0));
 
       updatedToTypeChar = toTypeChar.substring(1);
-      // if (updatedToTypeChar.split(' ').length < 10) {
-      //   updatedToTypeChar += ' ' + generate();
-      // }
+
       setToTypeChar(updatedToTypeChar);
 
       if (toTypeChar.charAt(0) === ' ') {
@@ -264,12 +257,6 @@ function KeyboardComplete() {
           </div>
         ) : (<></>)}
         <div id="words" className={focused ? 'notBlurred' : 'blurred'}>
-          {/* <SampleWords
-            currentWord={wordList[currentWordNumber]}
-            wordList={wordList}
-            letterCorrect={window.correct}
-            wordCorrect={window.word_correct}
-          /> */}
           <div id="words__input">
             <p className="Character">
               <span className="Character-out">{(leftPadding + typedChar).slice(-35)}</span>
@@ -279,7 +266,6 @@ function KeyboardComplete() {
           </div>
         </div>
       </div>
-      {/* <input value={input} onChange={onChangeInput} /> */}
       <div style={{ pointerEvents: 'none' }}>
         <Keyboard
           keyboardRef={(r) => (keyboard.current = r)}
