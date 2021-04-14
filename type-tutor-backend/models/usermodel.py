@@ -67,160 +67,157 @@ def min_max_normalisation(prob, character_index_map):
     return prob_a
 
 def generate_text(user_id, seed_sequence = None):
-    global graph
-    with graph.as_default():
+    word_len = 50
+    wordnet_data = "" 
 
-        word_len = 50
-        wordnet_data = "" 
+    with open("./train_rnn/frankinstein.txt") as wordnet_words_file:
+            wordnet_data = wordnet_words_file.read()
 
-        with open("./train_rnn/frankinstein.txt") as wordnet_words_file:
-                wordnet_data = wordnet_words_file.read()
+    wordnet_data = re.sub("[^a-z ]+", "", wordnet_data)
+    wordnet_data = " ".join(set(wordnet_data.split(" ")))
+    
+    characters = sorted(set(wordnet_data))
+    characters_len = len(characters)
 
-        wordnet_data = re.sub("[^a-z ]+", "", wordnet_data)
-        wordnet_data = " ".join(set(wordnet_data.split(" ")))
-        
-        characters = sorted(set(wordnet_data))
-        characters_len = len(characters)
+    character_index_map = {character: characters.index(character) for character in characters}
+    inverse_character_index_map = {characters.index(character): character for character in characters}
+    
+    database_connection = None
+    database_cursor = None
+    error = None
+    incorrect_characters = {}
+    correct_characters = {}
+    character_times = {}
+    try: 
+        database_connection = mysql.connector.connect(
+            host='eu-cdbr-west-03.cleardb.net',
+            database='heroku_8af8fae4116d831',
+            user='b1282a2123d519',
+            password='29416dad'
+        )
+        if database_connection.is_connected():
+            database_cursor = database_connection.cursor(dictionary=True)
+            database_cursor.execute("select words_per_min, incorrect_characters, correct_characters, character_time, character_name from og_user_characters inner join characters on characters.character_id = og_user_characters.character_id inner join users on og_user_characters.user_id = users.user_id where users.user_id = %s;", (user_id,))
+            character_data = database_cursor.fetchall()
+            for i in character_data:
+                try:
+                    correct_characters[i["character_name"]] = i["correct_characters"]
+                    incorrect_characters[i["character_name"]] = float(i["incorrect_characters"]) / float((i["incorrect_characters"] + i["correct_characters"]))
+                    character_times[i["character_name"]] = float(i["character_time"])
+                except:
+                    incorrect_characters[i["character_name"]] = 0
+                    character_times[i["character_name"]] = 0
 
-        character_index_map = {character: characters.index(character) for character in characters}
-        inverse_character_index_map = {characters.index(character): character for character in characters}
-        
-        database_connection = None
-        database_cursor = None
-        error = None
-        incorrect_characters = {}
-        correct_characters = {}
-        character_times = {}
-        try: 
-            database_connection = mysql.connector.connect(
-                host='eu-cdbr-west-03.cleardb.net',
-                database='heroku_8af8fae4116d831',
-                user='b1282a2123d519',
-                password='29416dad'
-            )
-            if database_connection.is_connected():
-                database_cursor = database_connection.cursor(dictionary=True)
-                database_cursor.execute("select words_per_min, incorrect_characters, correct_characters, character_time, character_name from og_user_characters inner join characters on characters.character_id = og_user_characters.character_id inner join users on og_user_characters.user_id = users.user_id where users.user_id = %s;", (user_id,))
-                character_data = database_cursor.fetchall()
-                for i in character_data:
-                    try:
-                        correct_characters[i["character_name"]] = i["correct_characters"]
-                        incorrect_characters[i["character_name"]] = float(i["incorrect_characters"]) / float((i["incorrect_characters"] + i["correct_characters"]))
-                        character_times[i["character_name"]] = float(i["character_time"])
-                    except:
-                        incorrect_characters[i["character_name"]] = 0
-                        character_times[i["character_name"]] = 0
+            wpm = character_data[0]["words_per_min"]
+    except Exception as e:
+        print(e)
+        return "", False, {}
+        pass
+    finally:
+        if database_connection and database_connection.is_connected():
+            if database_cursor:
+                database_cursor.close()
+            database_connection.close()
 
-                wpm = character_data[0]["words_per_min"]
-        except Exception as e:
-            print(e)
-            return "", False, {}
-            pass
-        finally:
-            if database_connection and database_connection.is_connected():
-                if database_cursor:
-                    database_cursor.close()
-                database_connection.close()
+    incorrect_characters[" "] = 1
+    character_times[" "] = 1
 
-        incorrect_characters[" "] = 1
-        character_times[" "] = 1
+    incorrect_characters_org = dict(incorrect_characters)
+    incorrect_characters_org = min_max_normalisation(incorrect_characters_org, character_index_map)
 
-        incorrect_characters_org = dict(incorrect_characters)
-        incorrect_characters_org = min_max_normalisation(incorrect_characters_org, character_index_map)
+    new_user = False
+    
+    for k, v in correct_characters.items():
+        if v == 0 and (k == "e" or k == "a" or k == "r" or k == "i" or k == "o" or k == "t"):
+            new_user = True
+            incorrect_characters[k] = 1
+            character_times[k] = 1
 
-        new_user = False
-        
-        for k, v in correct_characters.items():
-            if v == 0 and (k == "e" or k == "a" or k == "r" or k == "i" or k == "o" or k == "t"):
-                new_user = True
-                incorrect_characters[k] = 1
-                character_times[k] = 1
-
-        correct_characters[" "] = 1
-        
-        
-        unlocked_characters = ['e', 'a', 'r', 'i', 'o', 't' ]
-        if not new_user:
-            unlock_next_character = True
-            found_zero_character = False
-            next_character_index = 0
-            unlock_seq = ['e', 'a', 'r', 'i', 'o', 't', 'n', 's', 'l', 'c', 'u', 'd', 'p', 'm', 'h', 'g', 'b', 'f', 'y', 'w', 'k', 'v', 'x', 'z', 'j', 'q']
-            for i in unlock_seq:
-                if found_zero_character and incorrect_characters[i] != 0:
-                    unlock_next_character = False
-                    break
-                if incorrect_characters[i] == 0 and correct_characters[i] == 0:
-                    found_zero_character = True
-                elif incorrect_characters[i] > 0.1:
-                    unlock_next_character = False
-                    break
-                else:
-                    next_character_index += 1
-                    if next_character_index < len(unlock_seq):
-                        unlocked_characters.append(unlock_seq[next_character_index])
-                
-            if unlock_next_character  and wpm >= 40:
+    correct_characters[" "] = 1
+    
+    
+    unlocked_characters = ['e', 'a', 'r', 'i', 'o', 't' ]
+    if not new_user:
+        unlock_next_character = True
+        found_zero_character = False
+        next_character_index = 0
+        unlock_seq = ['e', 'a', 'r', 'i', 'o', 't', 'n', 's', 'l', 'c', 'u', 'd', 'p', 'm', 'h', 'g', 'b', 'f', 'y', 'w', 'k', 'v', 'x', 'z', 'j', 'q']
+        for i in unlock_seq:
+            if found_zero_character and incorrect_characters[i] != 0:
+                unlock_next_character = False
+                break
+            if incorrect_characters[i] == 0 and correct_characters[i] == 0:
+                found_zero_character = True
+            elif incorrect_characters[i] > 0.1:
+                unlock_next_character = False
+                break
+            else:
+                next_character_index += 1
                 if next_character_index < len(unlock_seq):
                     unlocked_characters.append(unlock_seq[next_character_index])
-                    mean_character_weights = []
-                    for i in range(next_character_index-1):
-                        if incorrect_characters[unlock_seq[i]] != 0:
-                            mean_character_weights.append(incorrect_characters[i])
-                    if len(mean_character_weights):
-                        incorrect_characters[unlock_seq[next_character_index]] = statistics.mean(mean_character_weights) * 2
-                    else: 
-                        incorrect_characters[unlock_seq[next_character_index]] = 4
+            
+        if unlock_next_character  and wpm >= 40:
+            if next_character_index < len(unlock_seq):
+                unlocked_characters.append(unlock_seq[next_character_index])
+                mean_character_weights = []
+                for i in range(next_character_index-1):
+                    if incorrect_characters[unlock_seq[i]] != 0:
+                        mean_character_weights.append(incorrect_characters[i])
+                if len(mean_character_weights):
+                    incorrect_characters[unlock_seq[next_character_index]] = statistics.mean(mean_character_weights) * 2
+                else: 
+                    incorrect_characters[unlock_seq[next_character_index]] = 4
 
-            min_val = min([v for k,v in incorrect_characters.items() if v > 0] or [1])
+        min_val = min([v for k,v in incorrect_characters.items() if v > 0] or [1])
 
-            for i in unlocked_characters:
-                if incorrect_characters[i] == 0:
-                    incorrect_characters[i] = min_val / 3
-        
-        incorrect_characters = min_max_normalisation(incorrect_characters, character_index_map)
-        character_times = min_max_normalisation(character_times, character_index_map)
-        if not seed_sequence:
-            start_index = random.randint(0, len(wordnet_data)- word_len -1)
-            generated_text = wordnet_data[start_index: start_index+word_len]
-        else: 
-            generated_text = seed_sequence[len(seed_sequence)-word_len: len(seed_sequence)]
-        
-        org_text = generated_text
-        all_generated_text = generated_text
-        new_character = None
-        for i in range(250):
-            seed_data = np.zeros((1, word_len, len(characters)))
-            for j in range(len(generated_text)):
-                seed_data[0,j,character_index_map[generated_text[j]]] = 1.
-            preds = model.predict(seed_data, batch_size=1)[0]
+        for i in unlocked_characters:
+            if incorrect_characters[i] == 0:
+                incorrect_characters[i] = min_val / 3
+    
+    incorrect_characters = min_max_normalisation(incorrect_characters, character_index_map)
+    character_times = min_max_normalisation(character_times, character_index_map)
+    if not seed_sequence:
+        start_index = random.randint(0, len(wordnet_data)- word_len -1)
+        generated_text = wordnet_data[start_index: start_index+word_len]
+    else: 
+        generated_text = seed_sequence[len(seed_sequence)-word_len: len(seed_sequence)]
+    
+    org_text = generated_text
+    all_generated_text = generated_text
+    new_character = None
+    for i in range(250):
+        seed_data = np.zeros((1, word_len, len(characters)))
+        for j in range(len(generated_text)):
+            seed_data[0,j,character_index_map[generated_text[j]]] = 1.
+        preds = model.predict(seed_data, batch_size=1)[0]
 
-            net_predicted_character = characters[get_predicted_text(preds, 0.8, [1 for _ in range(characters_len)], [1 for _ in range(characters_len)], character_index_map, new_character)]
+        net_predicted_character = characters[get_predicted_text(preds, 0.8, [1 for _ in range(characters_len)], [1 for _ in range(characters_len)], character_index_map, new_character)]
 
-            if net_predicted_character == " ":
-                new_character = " "
-            else:
-                new_character = characters[get_predicted_text(preds, 0.8, incorrect_characters, character_times, character_index_map, new_character)]
-            generated_text += new_character
+        if net_predicted_character == " ":
+            new_character = " "
+        else:
+            new_character = characters[get_predicted_text(preds, 0.8, incorrect_characters, character_times, character_index_map, new_character)]
+        generated_text += new_character
 
-            generated_text = generated_text[1:]
-            all_generated_text+= new_character
-        
-        org_text = " ".join(org_text.split(" "))
-        all_generated_text = " ".join((all_generated_text[len(org_text):len(all_generated_text)]).split(" ")[:-2]).strip()
+        generated_text = generated_text[1:]
+        all_generated_text+= new_character
+    
+    org_text = " ".join(org_text.split(" "))
+    all_generated_text = " ".join((all_generated_text[len(org_text):len(all_generated_text)]).split(" ")[:-2]).strip()
 
-        correct_characters_normalised = [0 for k, v in correct_characters.items()]
-        
-        for k, v in correct_characters.items():
-            try:
-                correct_characters_normalised[character_index_map[k]] = ((v - correct_characters[min(correct_characters, key=correct_characters.get)]) / (correct_characters[max(correct_characters, key=correct_characters.get)] - correct_characters[min(correct_characters, key=correct_characters.get)]))
-            except:
-                correct_characters_normalised[character_index_map[k]] = 0
+    correct_characters_normalised = [0 for k, v in correct_characters.items()]
+    
+    for k, v in correct_characters.items():
+        try:
+            correct_characters_normalised[character_index_map[k]] = ((v - correct_characters[min(correct_characters, key=correct_characters.get)]) / (correct_characters[max(correct_characters, key=correct_characters.get)] - correct_characters[min(correct_characters, key=correct_characters.get)]))
+        except:
+            correct_characters_normalised[character_index_map[k]] = 0
 
-        mastered_chars = characters_mastered(incorrect_characters_org, correct_characters_normalised, wpm, inverse_character_index_map)
-        del mastered_chars[' ']
+    mastered_chars = characters_mastered(incorrect_characters_org, correct_characters_normalised, wpm, inverse_character_index_map)
+    del mastered_chars[' ']
 
 
-        return (all_generated_text, int(is_master(incorrect_characters_org, wpm)), mastered_chars)
+    return (all_generated_text, int(is_master(incorrect_characters_org, wpm)), mastered_chars)
 
 
 
