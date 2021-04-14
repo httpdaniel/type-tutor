@@ -1,4 +1,6 @@
-import React from 'react';
+/* eslint-disable */
+
+import React,  {useState, useEffect} from 'react';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -11,6 +13,7 @@ import PersonOutlinedIcon from '@material-ui/icons/PersonOutlineOutlined';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
+import {Bar, Line, Pie} from 'react-chartjs-2';
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -27,6 +30,89 @@ const useStyles = makeStyles((theme) => ({
 
 function Profile() {
   const classes = useStyles();
+  const [charAcc, setCharAcc] = useState(null)
+  const [charCorr, setCharCorr] = useState(null)
+  const [charIncorr, setCharIncorr] = useState(null)
+  const [metricData, setMetricData] = useState(null)
+  const [sessData, setSessData] = useState(null);
+  const [wpmData, setWpmData] = useState(null);
+  const [accData, setAccData] = useState(null);
+  const [sessLabels, setSessLabels] = useState([]);
+  const [jwt, setJwt] = useState(localStorage.getItem('jwt'));
+  const [email, setEmail] = useState(localStorage.getItem('email'));
+
+  useEffect(async ()=>{
+    window.addEventListener('storage', () => {
+      console.log('Storage Update');
+      setJwt(localStorage.getItem('jwt'));
+      setEmail(localStorage.getItem('email'));
+    });
+    const url = "http://127.0.0.1:8000/getSessions"
+    const data = await fetch(url, {
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        method: "POST",
+        body: JSON.stringify({ user_id: 1 })
+    }).then(res => res.json())
+    let alphaObj = {}
+    let metricObj = {}
+    let sessObj = {}
+    console.log(data)
+    Object.entries(data).forEach(el => {
+        const [key, value] = el
+        if (key.length == 1) {
+            alphaObj[key] = value
+        } else {
+            metricObj[key] = value
+        }
+    })
+
+    const character_accuracy = Object.values(alphaObj).map(el => {
+        return el.character_accuracy
+    })
+
+    const correct_characters = Object.values(alphaObj).map(el => {
+        return el.correct_characters
+    })
+
+    const incorrect_characters = Object.values(alphaObj).map(el => {
+        return el.incorrect_characters
+    })
+
+
+    Object.entries(data).forEach(el => {
+        const [key, value] = el
+        if (key.includes("session")) {
+            sessObj[key] = value
+        } 
+    })
+
+    console.log(sessObj)
+
+    setSessData(sessObj);
+
+    const sess_wpm = Object.values(sessObj).map(el => {
+        return el.WPM;
+    })
+
+    const sess_acc = Object.values(sessObj).map(el => {
+        return el.totalAccuracy;
+    })
+
+    console.log(sess_wpm)
+    setSessLabels(Array.from({length: sess_wpm.length}, (_, i) => i + 1)        )
+    setAccData(sess_acc)
+    setWpmData(sess_wpm)
+    
+    setCharAcc(character_accuracy)
+    setCharCorr(correct_characters)
+    setCharIncorr(incorrect_characters)
+
+    
+
+  }, [])
 
   return (
     <Container component="main" maxWidth="xs">
@@ -56,6 +142,123 @@ function Profile() {
           </Grid>
         </Grid>
       </div>
+
+      <h1>User Statistics</h1>
+            
+            <div className="chart-container">
+                <Line className="wpm-chart"
+                    data={{
+                            labels :  sessLabels,
+                            datasets :  [
+                            {
+                                label:'Accuracy',
+                                data:[
+                                    {
+                                        label:'Accuracy',
+                                        data:accData,
+                                        backgroundColor:[
+                                        'rgba(191, 191, 191, 0.5)',
+                                        ]
+                                    }
+                                    ]
+                                
+                            }
+                            ]
+                        }}
+
+
+                    options={{
+                        maintainAspectRatio: false,
+                        title:{
+                            display: true,
+                            text:'Accuracy Per Session',
+                            fontSize:20
+                        },
+                        legend:{
+                            display: true,
+                            position:'right'
+                        }
+                    }}
+                />
+            </div>
+
+            <div className="chart-container">
+                <Line className="wpm-chart"
+                    data={{
+                            labels :  sessLabels,
+                            datasets : [
+                            {
+                                label:'WPM',
+                                data:wpmData,
+                                backgroundColor:[
+                                'rgba(191, 191, 191, 0.5)',
+                                ]
+                            }
+                            ]
+                        }}
+
+
+                    options={{
+                        maintainAspectRatio: false,
+                        title:{
+                            display: true,
+                            text:'WPM Per Session',
+                            fontSize:20
+                        },
+                        legend:{
+                            display: true,
+                            position:'right'
+                        }
+                    }}
+                />
+            </div>
+
+            <div className="chart-container">
+                <Bar className="wpm-chart"
+                    data={{
+                            labels :  ['A', 'B', 'C', 'D', 'E', 'F', 'J', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'],
+                            datasets : [
+                            {
+                                label:'Character Correctness',
+                                data: charCorr,
+                                backgroundColor:[
+                                'rgba(191, 191, 191, 0.5)',
+                                ]
+                            }, 
+                            {
+                                label:'Character Accuracy',
+                                data: charAcc,
+                                backgroundColor:[
+                                'rgba(191, 191, 191, 0.7)',
+                                ]
+
+                            },
+                            {
+                                label:'Character Incorrectness',
+                                data: charIncorr,
+                                backgroundColor:[
+                                'rgba(191, 191, 191, 0.9)',
+                                ]
+
+                            }
+                            ]
+                        }}
+
+
+                    options={{
+                        maintainAspectRatio: false,
+                        title:{
+                            display: true,
+                            text:'Key Frequency',
+                            fontSize:20
+                        },
+                        legend:{
+                            display: true,
+                            position:'right'
+                        }
+                    }}
+                />
+            </div>
     </Container>
   );
 }

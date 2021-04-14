@@ -78,6 +78,11 @@ function Navbar() {
               Home
             </Typography>
           </Link>
+          <Link to="/profile" style={{ textDecoration: 'none' }}>
+            <Typography variant="h6" className="navbar__link">
+              Profile
+            </Typography>
+          </Link>
           <Link to="/visualization" style={{ textDecoration: 'none' }}>
             <Typography variant="h6" className="navbar__link">
               Statistics
