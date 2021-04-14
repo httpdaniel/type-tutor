@@ -16,16 +16,16 @@ import Container from '@material-ui/core/Container';
 import {Bar, Line, Pie} from 'react-chartjs-2';
 
 const useStyles = makeStyles((theme) => ({
-  paper: {
-    marginTop: theme.spacing(8),
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
-  avatar: {
-    margin: theme.spacing(1),
-    backgroundColor: theme.palette.secondary.main,
-  },
+    paper: {
+        marginTop: theme.spacing(8),
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+    },
+    avatar: {
+        margin: theme.spacing(1),
+        backgroundColor: theme.palette.secondary.main,
+    },
 }));
 
 function Profile() {
@@ -115,34 +115,21 @@ function Profile() {
   }, [])
 
   return (
-    <Container component="main" maxWidth="xs">
-      <CssBaseline />
-      <div className={classes.paper}>
-        <Avatar className={classes.avatar}>
-          <PersonOutlinedIcon />
-        </Avatar>
-        <Typography component="h1" variant="h5">
-          Profile
-        </Typography>
-        <Grid container direction="column" justify="center" spacing={1} style={{ marginTop: '20px' }}>
-          <Grid item>
-            <Link href="/update_email" variant="body2">
-              Update Email
-            </Link>
-          </Grid>
-          <Grid item>
-            <Link href="/update_password" variant="body2">
-              Update Password
-            </Link>
-          </Grid>
-          <Grid item style={{ marginTop: '10px' }}>
-            <Link href="/delete_account" variant="body2" style={{ color: 'red' }}>
-              Delete Account
-            </Link>
-          </Grid>
-        </Grid>
-      </div>
-
+    <Container className="vis-container" maxWidth={1}>
+        <CssBaseline />
+        <div className={classes.paper}>
+            <Avatar className={classes.avatar}>
+            <PersonOutlinedIcon />
+            </Avatar>
+            <Typography component="h1" variant="h5">
+            Profile
+            </Typography>
+        </div>
+    <Grid container
+  direction="row"
+  justify="space-evenly"
+  alignItems="flex-start">
+    <Grid xs="9">
       <h1>User Statistics</h1>
             
             <div className="chart-container">
@@ -259,6 +246,29 @@ function Profile() {
                     }}
                 />
             </div>
+        </Grid>
+
+        <Grid xs="1" zeroMinWidth>    
+        <h1 style={{ whiteSpace: 'nowrap'}}>User Control</h1>            
+                <Grid container direction="column" spacing={1} style={{ marginTop: '20px' }}>
+                <Grid item>
+                    <Link href="/update_email" variant="body2">
+                    Update Email
+                    </Link>
+                </Grid>
+                <Grid item>
+                    <Link href="/update_password" variant="body2">
+                    Update Password
+                    </Link>
+                </Grid>
+                <Grid item style={{ marginTop: '10px' }}>
+                    <Link href="/delete_account" variant="body2" style={{ color: 'red' }}>
+                    Delete Account
+                    </Link>
+                </Grid>
+                </Grid>
+        </Grid>
+        </Grid>
     </Container>
   );
 }
