@@ -40,14 +40,14 @@ def login():
                     'exp':datetime.utcnow() + timedelta(days=5),
                     'sub': user[0]
                 }
-                token = jwt.encode(payload, "123", algorithm='HS256', options={"verify_signature": False})
+                token = jwt.encode(payload, "123", algorithm='HS256')
             else:
                 error = "Invalid login credentials"
         else:
             error = "error connecting to database"
     except Exception as e:
-        print(database_cursor.statement)
-        error = "Internal server error" % e
+        print(e)
+        error = "Internal server error" + e
     finally:
         if database_connection and database_connection.is_connected():
             if database_cursor:
@@ -120,7 +120,7 @@ def register():
                 database_connection.commit()
 
             else:
-                error = "A user with %s already exists" % email
+                error = "A user with %s already exists" + email
 
     except Exception as e:
         print(e)
@@ -135,7 +135,7 @@ def register():
     if error:
         return Response(json.dumps({"message": error }), mimetype='application/json', status='400')
     else:
-        return Response(json.dumps({"message": "Success registered %s" % email}), mimetype='application/json', status='201')
+        return Response(json.dumps({"message": "Success registered %s" + email}), mimetype='application/json', status='201')
 
 
 @app.route('/seed', methods=['GET'])
@@ -172,7 +172,7 @@ def submit():
                     return Response(json.dumps({'message': "Unauthorised"}), mimetype='application/json', status='400')
         except Exception as e:
             print(database_cursor.statement)
-            error = "Internal server error" % e
+            error = "Internal server error" + e
         finally:
             if database_connection and database_connection.is_connected():
                 if database_cursor:
@@ -227,7 +227,7 @@ def delete_account():
 
     except Exception as e:
         print(database_cursor.statement)
-        error = "Internal server error" % e
+        error = "Internal server error" + e
     finally:
         if database_connection and database_connection.is_connected():
             if database_cursor:
@@ -273,7 +273,7 @@ def update_password():
 
     except Exception as e:
         print(database_cursor.statement)
-        error = "Internal server error" % e
+        error = "Internal server error" + e
     finally:
         if database_connection and database_connection.is_connected():
             if database_cursor:
@@ -324,7 +324,7 @@ def email():
 
     except Exception as e:
         print(database_cursor.statement)
-        error = "Internal server error" % e
+        error = "Internal server error" + e
     finally:
         if database_connection and database_connection.is_connected():
             if database_cursor:
@@ -361,7 +361,7 @@ def generate_text():
                     return Response(json.dumps({'message': "Unauthorised"}), mimetype='application/json', status='400')
         except Exception as e:
             print(database_cursor.statement)
-            error = "Internal server error" % e
+            error = "Internal server error " + e
         finally:
             if database_connection and database_connection.is_connected():
                 if database_cursor:
@@ -402,7 +402,7 @@ def generate_next_sequence():
                     return Response(json.dumps({'message': "Unauthorised"}), mimetype='application/json', status='400')
         except Exception as e:
             print(database_cursor.statement)
-            error = "Internal server error" % e
+            error = "Internal server error" + e
         finally:
             if database_connection and database_connection.is_connected():
                 if database_cursor:

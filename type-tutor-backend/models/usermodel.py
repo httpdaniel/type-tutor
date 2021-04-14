@@ -73,7 +73,7 @@ def generate_text(user_id, seed_sequence = None):
         word_len = 50
         wordnet_data = "" 
 
-        with open("./train_rnn/stoker.txt") as wordnet_words_file:
+        with open("./train_rnn/frankinstein.txt") as wordnet_words_file:
                 wordnet_data = wordnet_words_file.read()
 
         wordnet_data = re.sub("[^a-z ]+", "", wordnet_data)
