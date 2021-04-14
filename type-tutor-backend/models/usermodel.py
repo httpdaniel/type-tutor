@@ -111,7 +111,6 @@ def generate_text(user_id, seed_sequence = None):
     except Exception as e:
         print(e)
         return "", False, {}
-        pass
     finally:
         if database_connection and database_connection.is_connected():
             if database_cursor:
@@ -133,7 +132,6 @@ def generate_text(user_id, seed_sequence = None):
             character_times[k] = 1
 
     correct_characters[" "] = 1
-    
     
     unlocked_characters = ['e', 'a', 'r', 'i', 'o', 't' ]
     if not new_user:
@@ -266,7 +264,7 @@ def store_session_details(request_data):
 
             updated_test_taken = existing_users["tests_taken"] + 1
 
-            updated_wpm = (existing_users["tests_taken"] * existing_users["words_per_min"] + wpm) / (updated_test_taken)
+            updated_wpm = (float(existing_users["tests_taken"]) * float(existing_users["words_per_min"]) + float(wpm)) / float(updated_test_taken)
 
             database_cursor.execute("select * from og_user_characters inner join characters on characters.character_id = og_user_characters.character_id where user_id = %s;", (user_id,))
             character_data = database_cursor.fetchall()
@@ -280,9 +278,12 @@ def store_session_details(request_data):
                         updated_correct_characters = (existing_users["tests_taken"] * i["correct_characters"] + request_data["correct_characters"][k]) / (updated_test_taken)
                         updated_incorrect_characters = (existing_users["tests_taken"] * i["incorrect_characters"] + request_data["incorrect_characters"][k]) / (updated_test_taken)
                         updated_character_times = (existing_users["tests_taken"] * i["character_time"] + request_data["character_time"][k]) / (updated_test_taken)
-                        updated_accuracy = (existing_users["tests_taken"] * i["character_accuracy"] + request_data["character_accuracy"][k]) / (updated_test_taken)
-                        updated_character_data.append((updated_correct_characters, updated_incorrect_characters, updated_character_times,updated_accuracy, user_id, i["character_id"]))
-                        testsessions_data.append((updated_correct_characters, updated_incorrect_characters, updated_character_times, updated_accuracy, user_id, i["character_id"], sessionID))
+                        try:
+                            updated_accuracy = (existing_users["tests_taken"] * i["character_accuracy"] + updated_correct_characters / (updated_incorrect_characters +updated_correct_characters)) / (updated_test_taken)
+                        except:
+                            updated_accuracy = 0
+                        updated_character_data.append((updated_correct_characters, updated_incorrect_characters, updated_character_times, updated_accuracy, user_id, i["character_id"]))
+                        testsessions_data.append((updated_correct_characters, updated_incorrect_characters, updated_character_times, updated_accuracy , user_id, i["character_id"], sessionID))
                     
             database_cursor.executemany(
                 """UPDATE og_user_characters SET correct_characters = %s, incorrect_characters = %s, character_time = %s ,  character_accuracy = %s WHERE user_id = %s and og_user_characters.character_id = %s;""", 
