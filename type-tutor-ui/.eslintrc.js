@@ -22,5 +22,6 @@ module.exports = {
     'no-return-assign': 'off',
     'no-plusplus': 'off',
     'object-shorthand': 'off',
+    'no-continue': 'off',
   },
 };
