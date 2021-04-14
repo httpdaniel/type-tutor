@@ -63,6 +63,8 @@ function KeyboardComplete() {
   function endGame() {
     setGameOver(true);
     const incorrect_info = [];
+    const correct_info = [];
+    const acc_info = [];
     const unique = [...new Set(incorrect)];
     for (let i = 0; i < unique.length; i++) {
       const incorrectChar = unique[i];
@@ -70,13 +72,30 @@ function KeyboardComplete() {
       const appears = count(text, unique[i]);
       const acc = appears - num_time >= 0 ? (appears - num_time) / appears : 0;
       incorrect_info.push({
-        incorrect_char: incorrectChar,
-        num_times: num_time,
-        num_appear: appears,
-        char_acc: acc,
+        incorrectChar,
+        num_time,
+      });
+      acc_info.push({
+        incorrectChar,
+        acc,
       });
     }
-    const game_info = { wpm: wpm, total_accuracy: accuracy, incorrect_chars: incorrect_info };
+    const uniqueChars = [...new Set(text)];
+    for (let i = 0; i < uniqueChars.length; i++) {
+      const correct_char = uniqueChars[i];
+      const num_correct = count(text, uniqueChars[i]);
+      correct_info.push({
+        correct_char,
+        num_correct,
+      });
+    }
+    const game_info = {
+      wpm: wpm,
+      total_accuracy: accuracy,
+      correct_characters: correct_info,
+      incorrect_characters: incorrect_info,
+      character_accuracy: acc_info,
+    };
     console.log(game_info);
     const token = localStorage.getItem('jwt');
     const email = localStorage.getItem('email');
