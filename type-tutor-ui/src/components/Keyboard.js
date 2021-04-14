@@ -100,32 +100,34 @@ function KeyboardComplete() {
 
   function endGame() {
     setGameOver(true);
-    const incorrect_info = [];
-    const correct_info = [];
-    const acc_info = [];
+    const incorrect_info = {};
+    const correct_info = {};
+    const acc_info = {};
+    const character_time = {};
+    const letters = 'abcdefghijklmnopqrstuvwxyz';
+    letters.split('').map(
+      (x) => [correct_info[x] = 0, incorrect_info[x] = 0, character_time[x] = 0, acc_info[x] = 0],
+    );
     const unique = [...new Set(incorrect)];
     for (let i = 0; i < unique.length; i++) {
       const incorrectChar = unique[i];
+      if (!letters.includes(incorrectChar)) {
+        continue;
+      }
       const num_time = count(incorrect.toString(), unique[i]);
       const appears = count(text, unique[i]);
       const acc = appears - num_time >= 0 ? (appears - num_time) / appears : 0;
-      incorrect_info.push({
-        incorrectChar,
-        num_time,
-      });
-      acc_info.push({
-        incorrectChar,
-        acc,
-      });
+      incorrect_info[incorrectChar] = num_time;
+      acc_info[incorrectChar] = acc;
     }
     const uniqueChars = [...new Set(text)];
     for (let i = 0; i < uniqueChars.length; i++) {
       const correct_char = uniqueChars[i];
+      if (!letters.includes(correct_char)) {
+        continue;
+      }
       const num_correct = count(text, uniqueChars[i]);
-      correct_info.push({
-        correct_char,
-        num_correct,
-      });
+      correct_info[correct_char] = num_correct;
     }
     const token = localStorage.getItem('jwt');
     const email = localStorage.getItem('email');
@@ -137,6 +139,7 @@ function KeyboardComplete() {
       correct_characters: correct_info,
       incorrect_characters: incorrect_info,
       character_accuracy: acc_info,
+      character_time,
     };
     console.log(game_info);
     submitTest(game_info, email, token);
