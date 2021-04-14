@@ -73,7 +73,7 @@ def generate_text(user_id, seed_sequence = None):
         word_len = 50
         wordnet_data = "" 
 
-        with open("./train_rnn/stoker.txt") as wordnet_words_file:
+        with open("./train_rnn/frankinstein.txt") as wordnet_words_file:
                 wordnet_data = wordnet_words_file.read()
 
         wordnet_data = re.sub("[^a-z ]+", "", wordnet_data)
@@ -131,19 +131,20 @@ def generate_text(user_id, seed_sequence = None):
         new_user = False
         
         for k, v in correct_characters.items():
-            if v == 0 and (k == "e" or k == "n" or k == "i" or k == "t" or k == "r"):
+            if v == 0 and (k == "e" or k == "a" or k == "r" or k == "i" or k == "o" or k == "t"):
                 new_user = True
                 incorrect_characters[k] = 1
                 character_times[k] = 1
 
         correct_characters[" "] = 1
         
-        unlocked_characters = ['e', 'n', 'i', 't', 'r']
+        
+        unlocked_characters = ['e', 'a', 'r', 'i', 'o', 't' ]
         if not new_user:
             unlock_next_character = True
             found_zero_character = False
             next_character_index = 0
-            unlock_seq = ['e', 'n', 'i', 't', 'r', 's', 'l', 'a', 'u', 'o', 'd', 'c', 'y', 'g', 'h', 'm', 'b', 'p', 'v', 'k', 'f', 'w', 'j', 'z', 'x', 'q', ]
+            unlock_seq = ['e', 'a', 'r', 'i', 'o', 't', 'n', 's', 'l', 'c', 'u', 'd', 'p', 'm', 'h', 'g', 'b', 'f', 'y', 'w', 'k', 'v', 'x', 'z', 'j', 'q']
             for i in unlock_seq:
                 if found_zero_character and incorrect_characters[i] != 0:
                     unlock_next_character = False
