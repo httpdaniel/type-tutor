@@ -1,9 +1,0 @@
-Flask==1.1.1
-Flask-Cors==3.0.8
-Flask-JWT==0.3.2
-flask-ngrok==0.0.25
-Keras==2.2.4
-tensorflow==1.13.0rc2
-PyJWT==1.4.2
-PyMySQL==0.9.3
-bcrypt==3.2.0
