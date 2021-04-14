@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import Keyboard from 'react-simple-keyboard';
 import 'react-simple-keyboard/build/css/index.css';
 import { Button } from '@material-ui/core';
+import { Email } from '@material-ui/icons';
 import useKeyPress from '../customHooks/useKeyPress';
 import SampleWords from './SampleWords';
 import 'font-awesome/css/font-awesome.min.css';
@@ -60,6 +61,43 @@ function KeyboardComplete() {
     return result;
   };
 
+  function generateTest(email, token) {
+    const url = '/generate_text?';
+    fetch(`${url
+    }&token=${
+      encodeURIComponent(token)
+    }&email=${
+      encodeURIComponent(email)}`, {
+      method: 'GET',
+      headers: {
+        'Content-type': 'application/json',
+      },
+    }).then((res) => res.json()).then(
+      (res) => {
+        console.log(res);
+        const str = JSON.stringify(res);
+        console.log(str);
+      },
+    );
+  }
+
+  function submitTest(info, email, token) {
+    fetch('/submit', {
+      method: 'POST',
+      headers: {
+        'Content-type': 'application/json',
+      },
+      body: JSON.stringify(info),
+    }).then((res) => res.json()).then(
+      (res) => {
+        console.log(res);
+        const str = JSON.stringify(res);
+        console.log(str);
+      },
+    );
+    generateTest(email, token);
+  }
+
   function endGame() {
     setGameOver(true);
     const incorrect_info = [];
@@ -89,18 +127,19 @@ function KeyboardComplete() {
         num_correct,
       });
     }
+    const token = localStorage.getItem('jwt');
+    const email = localStorage.getItem('email');
     const game_info = {
-      wpm: wpm,
+      email,
+      token,
+      wpm,
       total_accuracy: accuracy,
       correct_characters: correct_info,
       incorrect_characters: incorrect_info,
       character_accuracy: acc_info,
     };
     console.log(game_info);
-    const token = localStorage.getItem('jwt');
-    const email = localStorage.getItem('email');
-    console.log(`Token: ${token}`);
-    console.log(`Email: ${email}`);
+    submitTest(game_info, email, token);
   }
 
   useKeyPress((key) => {
