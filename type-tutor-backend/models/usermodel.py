@@ -16,7 +16,6 @@ import tensorflow as tf
 
 keras.backend.set_learning_phase(0)
 model = keras.models.load_model('./rnn_model/model.h5')
-graph = tf.get_default_graph()
 
 
 def get_predicted_text(predictions, temperature, incorrect_characters, character_times, character_index_map, new_character):
