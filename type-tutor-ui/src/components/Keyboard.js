@@ -1,22 +1,33 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import Keyboard from 'react-simple-keyboard';
 import 'react-simple-keyboard/build/css/index.css';
 import { Button } from '@material-ui/core';
-import { Email } from '@material-ui/icons';
 import useKeyPress from '../customHooks/useKeyPress';
-import SampleWords from './SampleWords';
 import 'font-awesome/css/font-awesome.min.css';
 import '../styles/KeyboardComplete.scss';
 import '../styles/App.scss';
 import Stats from './Stats';
+import Loading from './Loading';
 
 const incorrect = [];
 
 function KeyboardComplete() {
-  const text = 'to tar it or too it are trio oar air ariot ear';
-  const wordList = text.split(' ');
-  const [input, setInput] = useState('');
-  const [currentWordNumber, setcurrentWordNumber] = useState(0);
+  // const text = 'to tar it or too it are trio oar air ariot ear';
+
+  const [loading, setLoading] = useState(true);
+
+  const token = localStorage.getItem('jwt');
+  const email = localStorage.getItem('email');
+
+  if (token === null || email === null) {
+    console.log('Not signed in');
+    window.location.href = '/login';
+  }
+
+  const [text, setText] = useState('');
+  const [mastery, setMastery] = useState(0);
+  const [masteredChars, setMasteredChars] = useState({});
+
   const [leftPadding, setLeftPadding] = useState(
     new Array(35).fill(' ').join(''),
   );
@@ -32,22 +43,16 @@ function KeyboardComplete() {
   const [wpm, setWpm] = useState(0);
   const currentTime = () => new Date().getTime();
 
-  // For saving incorrect characters
-  // const [incorrectChars, setIncorrectChars] = useState([]);
-
   const [errors, setErrors] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
 
   const [accuracy, setAccuracy] = useState(0);
 
   const [gameOver, setGameOver] = useState(false);
-
   const [gameState, setGameState] = useState({});
 
-  const targetAccuracy = 90;
-  const targetWPM = 40;
-
-  const keyset = ['E', 'A', 'R', 'I', 'O', 'T'];
+  // const keyset = ['E', 'A', 'R', 'I', 'O', 'T'];
+  const [keyset, setKeyset] = useState(['E', 'A']);
 
   const count = (str, c) => {
     let result = 0;
@@ -56,7 +61,31 @@ function KeyboardComplete() {
     return result;
   };
 
-  function generateTest(email, token) {
+  function getKeyByValue(object, value) {
+    return Object.keys(object).find((key) => object[key] === value);
+  }
+
+  useEffect(() => {
+    setTypedChar('');
+    setCurrChar(text.charAt(0));
+    setToTypeChar(text.substring(1));
+    incorrect.length = 0;
+    // const uniqueKeyset = String.prototype.concat(...new Set(text));
+    // const newKeyset = uniqueKeyset.replace(/\s/g, '');
+    // console.log(newKeyset);
+    const tests = Object.keys(masteredChars).filter((k) => masteredChars[k] === 1);
+    console.log(tests);
+    const uppercased = tests.map((key) => key.toUpperCase());
+    setKeyset(uppercased);
+    setLoading(false);
+  }, [text]);
+
+  useEffect(() => {
+    generateTest();
+  }, []);
+
+  function generateTest() {
+    setLoading(true);
     const url = '/generate_text?';
     fetch(`${url
     }&token=${
@@ -66,21 +95,35 @@ function KeyboardComplete() {
       method: 'GET',
       headers: {
         'Content-type': 'application/json',
+        Accept: 'application/json',
       },
     }).then((res) => res.json()).then(
       (res) => {
         console.log(res);
         const str = JSON.stringify(res);
-        console.log(str);
+        const newText = res.text;
+        const newMaster = res.master;
+        const masterChars = res.mastered_characters;
+        console.log('Text: ', newText);
+        console.log('Master: ', newMaster);
+        console.log('Mastered: ', masterChars);
+        setMastery(newMaster);
+        setMasteredChars(masterChars);
+        // const tests = Object.keys(masterChars).filter((k) => masterChars[k] === 0);
+        // console.log('KEYS: ', tests);
+        // setKeyset(tests);
+        // setKeyset(['A', 'B']);
+        setText(newText);
       },
     );
   }
 
-  function submitTest(info, email, token) {
+  function submitTest(info) {
     fetch('/submit', {
       method: 'POST',
       headers: {
         'Content-type': 'application/json',
+        Accept: 'application/json',
       },
       body: JSON.stringify(info),
     }).then((res) => res.json()).then(
@@ -106,7 +149,7 @@ function KeyboardComplete() {
     const unique = [...new Set(incorrect)];
     for (let i = 0; i < unique.length; i++) {
       const incorrectChar = unique[i];
-      if (!letters.includes(incorrectChar)) {
+      if (!letters.includes(incorrectChar) || incorrectChar === '') {
         continue;
       }
       const num_time = count(incorrect.toString(), unique[i]);
@@ -124,8 +167,6 @@ function KeyboardComplete() {
       const num_correct = count(text, uniqueChars[i]);
       correct_info[correct_char] = num_correct;
     }
-    const token = localStorage.getItem('jwt');
-    const email = localStorage.getItem('email');
     const game_info = {
       email,
       token,
@@ -137,7 +178,7 @@ function KeyboardComplete() {
       character_time,
     };
     console.log(game_info);
-    submitTest(game_info, email, token);
+    submitTest(game_info);
   }
 
   useKeyPress((key) => {
@@ -189,112 +230,71 @@ function KeyboardComplete() {
   const [focusPopup, setFocusPopup] = useState(true);
   const keyboard = useRef();
 
-  const correct = true;
-  const word_correct = false;
-  let proceedNext = false;
-
-  const onChangeInput = (event) => {
-    const inputTB = event.target.value;
-    console.log(inputTB);
-    setInput(inputTB);
-    keyboard.current.setInput(inputTB);
-    const typedLetters = inputTB.split('');
-    const currentWord = typedLetters.slice(-1)[0];
-    const currentCorrectArray = wordList[currentWordNumber].split('');
-    console.log(currentWordNumber, currentWord);
-    console.log(typedLetters);
-    if (currentWordNumber < wordList.length) {
-      if (currentWord !== ' ') {
-        if (
-          typedLetters.some(
-            (letter, index) => letter !== currentCorrectArray[index],
-          )
-        ) {
-          window.correct = false;
-          console.log(window.correct);
-        } else {
-          console.log(window.correct);
-          window.correct = true;
-        }
-      }
-      console.log(window.correct, currentCorrectArray.length);
-      if (
-        currentWord === ' '
-        && window.correct === true
-        && typedLetters.length - 1 === currentCorrectArray.length
-      ) {
-        window.word_correct = true;
-        proceedNext = true;
-      } else if (
-        currentWord === ' '
-        && window.correct === false
-        && typedLetters.length - 1 === currentCorrectArray.length
-      ) {
-        window.word_correct = false;
-        proceedNext = true;
-      }
-      if (proceedNext) {
-        setcurrentWordNumber(currentWordNumber + 1);
-        setInput('');
-        proceedNext = false;
-      }
-    }
-  };
-
   return (
     <div className="keyboard">
-      <Stats wordsperminute={wpm} numerrors={errors} accuracyscore={accuracy} keyset={keyset} />
-      <div className="main__text">
-        {focusPopup ? (
-          <div className="out__of__focus">
-            <Button
-              style={{ backgroundColor: 'transparent' }}
-              onClick={() => { setFocused(true); setFocusPopup(false); }}
-            >
-              <i className="fa fa-mouse-pointer" />
-              Click to activate
-            </Button>
+      {loading === true ? (<Loading />) : (
+        <div>
+          <Stats
+            wordsperminute={wpm}
+            numerrors={errors}
+            accuracyscore={accuracy}
+            key={keyset}
+            keyset={keyset}
+          />
+          <div className="main__text">
+            {focusPopup ? (
+              <div className="out__of__focus">
+                <Button
+                  style={{ backgroundColor: 'transparent' }}
+                  onClick={() => { setFocused(true); setFocusPopup(false); }}
+                >
+                  <i className="fa fa-mouse-pointer" />
+                  Click to activate
+                </Button>
+              </div>
+            ) : (<></>)}
+            <div id="words" className={focused ? 'notBlurred' : 'blurred'}>
+              <div id="words__input">
+                <p className="Character">
+                  <span className="Character-out">{(leftPadding + typedChar).slice(-35)}</span>
+                  <span className="Character-current">{currChar}</span>
+                  <span className="Character-in">{toTypeChar.substr(0, 32)}</span>
+                </p>
+              </div>
+            </div>
           </div>
-        ) : (<></>)}
-        <div id="words" className={focused ? 'notBlurred' : 'blurred'}>
-          <div id="words__input">
-            <p className="Character">
-              <span className="Character-out">{(leftPadding + typedChar).slice(-35)}</span>
-              <span className="Character-current">{currChar}</span>
-              <span className="Character-in">{toTypeChar.substr(0, 32)}</span>
-            </p>
+          <div style={{ pointerEvents: 'none' }}>
+            <Keyboard
+              keyboardRef={(r) => (keyboard.current = r)}
+              layout={{
+                default: [
+                  '` 1 2 3 4 5 6 7 8 9 0 - = {backspace}',
+                  '{tab} q w e r t y u i o p [ ] \\',
+                  "{capslock} a s d f g h j k l ; ' {enter}",
+                  '{shiftleft} z x c v b n m , . / {shiftright}',
+                  '{controlleft} {altleft} {space} {altright} {controlright}',
+                ],
+              }}
+              display={{
+                '{tab}': 'tab',
+                '{backspace}': 'backspace',
+                '{enter}': 'enter',
+                '{capslock}': 'caps lock',
+                '{shiftleft}': 'shift',
+                '{shiftright}': 'shift',
+                '{controlleft}': 'ctrl',
+                '{controlright}': 'ctrl',
+                '{altleft}': 'alt',
+                '{altright}': 'alt',
+                '{space}': ' ',
+              }}
+              layoutName="default"
+              physicalKeyboardHighlight
+            />
           </div>
         </div>
-      </div>
-      <div style={{ pointerEvents: 'none' }}>
-        <Keyboard
-          keyboardRef={(r) => (keyboard.current = r)}
-          layout={{
-            default: [
-              '` 1 2 3 4 5 6 7 8 9 0 - = {backspace}',
-              '{tab} q w e r t y u i o p [ ] \\',
-              "{capslock} a s d f g h j k l ; ' {enter}",
-              '{shiftleft} z x c v b n m , . / {shiftright}',
-              '{controlleft} {altleft} {space} {altright} {controlright}',
-            ],
-          }}
-          display={{
-            '{tab}': 'tab',
-            '{backspace}': 'backspace',
-            '{enter}': 'enter',
-            '{capslock}': 'caps lock',
-            '{shiftleft}': 'shift',
-            '{shiftright}': 'shift',
-            '{controlleft}': 'ctrl',
-            '{controlright}': 'ctrl',
-            '{altleft}': 'alt',
-            '{altright}': 'alt',
-            '{space}': ' ',
-          }}
-          layoutName="default"
-          physicalKeyboardHighlight
-        />
-      </div>
+      )}
+
     </div>
   );
 }
