@@ -51,13 +51,6 @@ function Stats(props) {
           {scoreChange}
           )
         </span>
-        Score:
-        <span>
-          {score}
-          (↑+
-          {scoreChange}
-          )
-        </span>
       </div>
       <div className="statbox__middle">
         Key Set:
