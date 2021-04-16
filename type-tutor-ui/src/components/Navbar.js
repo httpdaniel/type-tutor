@@ -48,11 +48,11 @@ function Navbar() {
                 Profile
               </Typography>
             </Link>
-            <Link to="/visualization" style={{ textDecoration: 'none' }}>
+            {/* <Link to="/visualization" style={{ textDecoration: 'none' }}>
               <Typography variant="h6" className="navbar__link">
                 Statistics
               </Typography>
-            </Link>
+            </Link> */}
             <button type="button" onClick={() => handleLogout()} style={{ textDecoration: 'none', border: 'none', cursor: 'pointer' }}>
               <Typography variant="h6" className="navbar__link">
                 Logout
