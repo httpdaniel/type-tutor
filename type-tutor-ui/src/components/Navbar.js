@@ -20,7 +20,7 @@ function Navbar() {
     setJwt(localStorage.getItem('jwt'));
     localStorage.removeItem('email');
     setJwt(localStorage.getItem('email'));
-    window.location.href = '/';
+    window.location.href = '/login';
   }
 
   if (jwt) {
