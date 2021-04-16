@@ -1,0 +1,24 @@
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" width="448" height="448" viewBox="0 0 448 448">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #fff;
+      }
+
+      .cls-2 {
+        fill: #d8d8d8;
+      }
+
+      .cls-3 {
+        fill: #666;
+      }
+    </style>
+  </defs>
+  <title>TypeTutor_Icon</title>
+  <rect class="cls-1" width="448" height="448" rx="49.49"/>
+  <path class="cls-2" d="M500.42,82.14,280,266,83.5,500A49.45,49.45,0,0,0,125,522.5H472.41a51.14,51.14,0,0,0,51.09-51.2V124A49.46,49.46,0,0,0,500.42,82.14Z" transform="translate(-75.5 -74.5)"/>
+  <rect class="cls-2" x="63.5" y="47.5" width="321" height="321" rx="16.2"/>
+  <rect class="cls-1" x="79.5" y="63.5" width="289" height="289"/>
+  <path class="cls-3" d="M212,305.06V194.53H174.76v-36.1H294.43v36.1H257.15V305.06Z" transform="translate(-75.5 -74.5)"/>
+  <path class="cls-3" d="M341,407.06V296.53H303.76v-36.1H423.43v36.1H386.15V407.06Z" transform="translate(-75.5 -74.5)"/>
+</svg>

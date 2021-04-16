@@ -72,11 +72,16 @@ def generate_text(user_id, seed_sequence = None):
     with open("./train_rnn/frankinstein.txt") as wordnet_words_file:
             wordnet_data = wordnet_words_file.read()
 
+<<<<<<< HEAD
     wordnet_data = re.sub("[^a-z ]+", "", wordnet_data)
     wordnet_data = " ".join(set(wordnet_data.split(" ")))
     
     characters = sorted(set(wordnet_data))
     characters_len = len(characters)
+=======
+        with open("./train_rnn/frankinstein.txt") as wordnet_words_file:
+                wordnet_data = wordnet_words_file.read()
+>>>>>>> main
 
     character_index_map = {character: characters.index(character) for character in characters}
     inverse_character_index_map = {characters.index(character): character for character in characters}

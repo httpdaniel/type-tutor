@@ -133,3 +133,4 @@ dmypy.json
 .vscode/
 
 database_conf
+type-tutor-ui/node_modules/

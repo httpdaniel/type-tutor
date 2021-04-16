@@ -7,8 +7,11 @@ import jwt
 from datetime import datetime, timedelta
 import models.models 
 import models.usermodel as user_model
+from flask_cors import CORS
 
 app = Flask(__name__)
+cors = CORS(app, resources={r"/*": {"origins": "*"}})
+
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -117,7 +120,7 @@ def register():
                 database_connection.commit()
 
             else:
-                error = "A user with %s already exists" % email
+                error = "A user with %s already exists" + email
 
     except Exception as e:
         print(e)
