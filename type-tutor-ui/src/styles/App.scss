@@ -167,6 +167,8 @@ body {
 // }
 
 .loading__screen {
+  pointer-events: none;
+  background-color: aqua;
   position: absolute;
   width: 100% !important;
   height: 100% !important;
