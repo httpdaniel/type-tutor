@@ -24,5 +24,6 @@ module.exports = {
     'object-shorthand': 'off',
     'no-continue': 'off',
     'no-use-before-define': 'off',
+    'quote-props': 'off',
   },
 };
