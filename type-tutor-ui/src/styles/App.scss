@@ -64,6 +64,7 @@ body {
     justify-content: center;
     .out__of__focus {
       z-index: 999;
+      position: absolute;
       .fa-mouse-pointer {
         padding-right: 10px;
       }
@@ -113,6 +114,8 @@ body {
     justify-content: center;
     margin-left: 1px;
     margin-right: 1px;
+    margin-top: 8px;
+    margin-bottom: 4px;
     color: rgb(68, 68, 68);
     display: flex;
     flex-direction: column;
@@ -126,6 +129,8 @@ body {
     justify-content: center;
     margin-left: 1px;
     margin-right: 1px;
+    margin-top: 8px;
+    margin-bottom: 4px;
     color: rgb(68, 68, 68);
     display: flex;
     flex-direction: column;
@@ -160,3 +165,32 @@ body {
 //   padding-left: 100px;
 //   padding-top:20px;
 // }
+
+.loading__screen {
+  position: absolute;
+  width: 100% !important;
+  height: 100% !important;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0) 10%,
+    $bg-color 10%
+  );
+  overflow: hidden;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  .loader {
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    justify-items: center;
+    #loading__text {
+      color: $text-color;
+      font-size: 16px;
+      font-weight: 10;
+    }
+  }
+}
