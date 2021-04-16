@@ -47,7 +47,7 @@ function Profile() {
       setJwt(localStorage.getItem('jwt'));
       setEmail(localStorage.getItem('email'));
     });
-    const url = "http://127.0.0.1:8000/getSessions"
+    const url = "/getSessions"
     const data = await fetch(url, {
         headers: {
             'Accept': 'application/json',
