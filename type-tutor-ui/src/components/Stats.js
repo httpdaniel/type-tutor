@@ -33,23 +33,23 @@ function Stats(props) {
         Speed:
         <span>
           {wordsperminute}
-          (↑+
+          {/* (↑+
           {speedChange}
-          )
+          ) */}
         </span>
         Errors:
         <span>
           {numerrors}
-          (↑+
+          {/* (↑+
           {errorsChange}
-          )
+          ) */}
         </span>
         Accuracy:
         <span>
           {accuracyscore}%
-          (↑+
+          {/* (↑+
           {scoreChange}
-          )
+          ) */}
         </span>
       </div>
       <div className="statbox__middle">
