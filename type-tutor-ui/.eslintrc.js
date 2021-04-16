@@ -23,5 +23,6 @@ module.exports = {
     'no-plusplus': 'off',
     'object-shorthand': 'off',
     'no-continue': 'off',
+    'no-use-before-define': 'off',
   },
 };
