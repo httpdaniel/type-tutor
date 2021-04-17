@@ -16,6 +16,7 @@ import tensorflow as tf
 
 keras.backend.set_learning_phase(0)
 model = keras.models.load_model('./rnn_model/model.h5')
+# graph = tf.get_default_graph()
 
 
 def get_predicted_text(predictions, temperature, incorrect_characters, character_times, character_index_map, new_character):
@@ -66,22 +67,20 @@ def min_max_normalisation(prob, character_index_map):
     return prob_a
 
 def generate_text(user_id, seed_sequence = None):
+    # global graph
+    # with graph.as_default():
+
     word_len = 50
     wordnet_data = "" 
 
     with open("./train_rnn/frankinstein.txt") as wordnet_words_file:
             wordnet_data = wordnet_words_file.read()
 
-<<<<<<< HEAD
     wordnet_data = re.sub("[^a-z ]+", "", wordnet_data)
     wordnet_data = " ".join(set(wordnet_data.split(" ")))
     
     characters = sorted(set(wordnet_data))
     characters_len = len(characters)
-=======
-        with open("./train_rnn/frankinstein.txt") as wordnet_words_file:
-                wordnet_data = wordnet_words_file.read()
->>>>>>> main
 
     character_index_map = {character: characters.index(character) for character in characters}
     inverse_character_index_map = {characters.index(character): character for character in characters}
@@ -116,6 +115,7 @@ def generate_text(user_id, seed_sequence = None):
     except Exception as e:
         print(e)
         return "", False, {}
+        pass
     finally:
         if database_connection and database_connection.is_connected():
             if database_cursor:

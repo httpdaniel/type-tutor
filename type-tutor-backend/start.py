@@ -57,7 +57,7 @@ def login():
     if error:
         return Response(json.dumps({"message": error }), mimetype='application/json', status='400')
     else:
-        return Response(json.dumps({"message": token}), mimetype='application/json', status='200')
+        return Response(json.dumps({"message": token.decode('utf-8')}), mimetype='application/json', status='200')
    
     
 @app.route('/typing', methods=['POST'])
@@ -120,7 +120,7 @@ def register():
                 database_connection.commit()
 
             else:
-                error = "A user with %s already exists" + email
+                error = "A user with %s already exists" % email
 
     except Exception as e:
         print(e)
