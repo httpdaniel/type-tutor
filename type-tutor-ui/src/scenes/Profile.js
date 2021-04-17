@@ -42,77 +42,79 @@ function Profile() {
   const [email, setEmail] = useState(localStorage.getItem('email'));
 
   useEffect(async ()=>{
-    window.addEventListener('storage', () => {
+    window.addEventListener('storage', async () => {
       console.log('Storage Update');
       setJwt(localStorage.getItem('jwt'));
       setEmail(localStorage.getItem('email'));
+      if(jwt && email){
+        const url = "/getSessions"
+        const data = await fetch(url, {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            method: "POST",
+            body: JSON.stringify({ token:jwt, email: email })
+        }).then(res =>{ res.json()
+        let alphaObj = {}
+        let metricObj = {}
+        let sessObj = {}
+        // console.log(data)
+        Object.entries(data).forEach(el => {
+            const [key, value] = el
+            if (key.length == 1) {
+                alphaObj[key] = value
+            } else {
+                metricObj[key] = value
+            }
+        })
+    
+        const character_accuracy = Object.values(alphaObj).map(el => {
+            return el.character_accuracy
+        })
+    
+        const correct_characters = Object.values(alphaObj).map(el => {
+            return el.correct_characters
+        })
+    
+        const incorrect_characters = Object.values(alphaObj).map(el => {
+            return el.incorrect_characters
+        })
+    
+    
+        Object.entries(data).forEach(el => {
+            const [key, value] = el
+            if (key.includes("session")) {
+                sessObj[key] = value
+            } 
+        })
+    
+        console.log(sessObj)
+    
+        setSessData(sessObj);
+    
+        const sess_wpm = Object.values(sessObj).map(el => {
+            return el.WPM;
+        })
+    
+        const sess_acc = Object.values(sessObj).map(el => {
+            return el.totalAccuracy;
+        })
+    
+        console.log(sess_wpm)
+        setSessLabels(Array.from({length: sess_wpm.length}, (_, i) => i + 1)        )
+        setAccData(sess_acc)
+        setWpmData(sess_wpm)
+        
+        setCharAcc(character_accuracy)
+        setCharCorr(correct_characters)
+        setCharIncorr(incorrect_characters)
+    
+        
+        })
+      }
     });
-    const url = "/getSessions"
-    const data = await fetch(url, {
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        method: "POST",
-        body: JSON.stringify({ user_id: 1 })
-    }).then(res => res.json())
-    let alphaObj = {}
-    let metricObj = {}
-    let sessObj = {}
-    console.log(data)
-    Object.entries(data).forEach(el => {
-        const [key, value] = el
-        if (key.length == 1) {
-            alphaObj[key] = value
-        } else {
-            metricObj[key] = value
-        }
-    })
-
-    const character_accuracy = Object.values(alphaObj).map(el => {
-        return el.character_accuracy
-    })
-
-    const correct_characters = Object.values(alphaObj).map(el => {
-        return el.correct_characters
-    })
-
-    const incorrect_characters = Object.values(alphaObj).map(el => {
-        return el.incorrect_characters
-    })
-
-
-    Object.entries(data).forEach(el => {
-        const [key, value] = el
-        if (key.includes("session")) {
-            sessObj[key] = value
-        } 
-    })
-
-    console.log(sessObj)
-
-    setSessData(sessObj);
-
-    const sess_wpm = Object.values(sessObj).map(el => {
-        return el.WPM;
-    })
-
-    const sess_acc = Object.values(sessObj).map(el => {
-        return el.totalAccuracy;
-    })
-
-    console.log(sess_wpm)
-    setSessLabels(Array.from({length: sess_wpm.length}, (_, i) => i + 1)        )
-    setAccData(sess_acc)
-    setWpmData(sess_wpm)
-    
-    setCharAcc(character_accuracy)
-    setCharCorr(correct_characters)
-    setCharIncorr(incorrect_characters)
-
-    
-
-  }, [])
+    }, [])
 
   return (
     <Container className="vis-container" maxWidth={1}>
