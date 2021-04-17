@@ -417,7 +417,7 @@ def generate_next_sequence():
 
 
 @app.route('/getSessions', methods=['GET'])
-def generate_next_sequence():
+def getSessions():
     token = request.args.get('token')
     email = request.args.get('email')
     
