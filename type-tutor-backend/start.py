@@ -185,12 +185,12 @@ def submit():
     
     request_data["user_id"] = user_id
 
-    response, master = user_model.store_session_details(request_data)
-
-    if(not response):
+    response, master, mastered_characters, unlocked_characters = user_model.store_session_details(request_data)
+    print(response)
+    if response == -1:
         return Response(json.dumps({"message": response }), mimetype='application/json', status='400')
     else:
-        return Response(json.dumps({"message": "Successfully committed details", "master": master}), mimetype='application/json', status='201')
+        return Response(json.dumps({"message": "Successfully committed details", "master": master, "mastered_characters": mastered_characters, "unlocked_characters": unlocked_characters}), mimetype='application/json', status='201')
 
 
 
@@ -373,9 +373,9 @@ def generate_text():
     except Exception as e:
         return Response(json.dumps({'message': "Unauthorised"}), mimetype='application/json', status='400')
     
-    generated_text, master, mastered_characters = user_model.generate_text(user_id)
+    generated_text, master, mastered_characters, unlocked_characters = user_model.generate_text(user_id)
     
-    return Response(json.dumps({"text": generated_text, "master": master, "mastered_characters": mastered_characters}), mimetype='application/json', status='201')
+    return Response(json.dumps({"text": generated_text, "master": master, "mastered_characters": mastered_characters, "unlocked_characters": unlocked_characters}), mimetype='application/json', status='201')
 
 @app.route('/generate_next_sequence', methods=['GET'])
 def generate_next_sequence():
@@ -414,9 +414,9 @@ def generate_next_sequence():
     except Exception as e:
         return Response(json.dumps({'message': "Unauthorised"}), mimetype='application/json', status='400')
     
-    generated_text, master, mastered_characters = user_model.generate_text(user_id, text)
+    generated_text, master, mastered_characters, unlocked_characters = user_model.generate_text(user_id)
     
-    return Response(json.dumps({"text": generated_text, "master": master, "mastered_characters": mastered_characters}), mimetype='application/json', status='201')
+    return Response(json.dumps({"text": generated_text, "master": master, "mastered_characters": mastered_characters, "unlocked_characters": unlocked_characters}), mimetype='application/json', status='201')
 
 @app.route('/getSessions', methods=['POST'])
 def getSessions():
