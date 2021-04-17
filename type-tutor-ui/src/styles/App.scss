@@ -9,7 +9,7 @@ $secondary-text: #b2b2b2;
 
 body {
   height: 100%;
-  background-color: #eeeeee;
+  background-color: $bg-color !important;
 }
 
 .App {
