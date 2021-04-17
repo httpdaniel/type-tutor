@@ -16,7 +16,7 @@ wordnet_data = re.sub("[^a-z ]+", "", wordnet_data)
 dist = set(wordnet_data.split(" "))
 wordnet_data = " ".join(dist)
 
-word_len = 400
+word_len = 100
 wordnet_data_len = len(wordnet_data)
 
 word_samples = []
