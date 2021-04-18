@@ -452,7 +452,7 @@ def getSessions():
     except Exception as e:
         return Response(json.dumps({'message': "Unauthorised"}), mimetype='application/json', status='400')
 
-    return Response(user_model.get_session_details(request_data), mimetype='application/json', status='201')
+    return Response(user_model.get_session_details(user_id), mimetype='application/json', status='201')
 
 
 

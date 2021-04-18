@@ -315,9 +315,9 @@ def store_session_details(request_data):
     return (1, int(is_master(total_errors, wpm)))
 
 
-def get_session_details(request_data):
+def get_session_details(user_id):
 
-    user_id   = request_data.get("user_id")
+    
     try: 
         database_connection = mysql.connector.connect(
             host='eu-cdbr-west-03.cleardb.net',
