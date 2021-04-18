@@ -35,33 +35,42 @@ function Profile() {
     const [charIncorr, setCharIncorr] = useState(null)
     const [metricData, setMetricData] = useState(null)
     const [sessData, setSessData] = useState(null);
-    const [wpmData, setWpmData] = useState(null);
-    const [accData, setAccData] = useState(null);
+    const [wpmData, setWpmData] = useState([]);
+    const [accData, setAccData] = useState([]);
     const [sessLabels, setSessLabels] = useState([]);
-    const [jwt, setJwt] = useState(localStorage.getItem('jwt'));
+    const [token, setJwt] = useState(localStorage.getItem('jwt'));
     const [email, setEmail] = useState(localStorage.getItem('email'));
 
     useEffect(async () => {
-        window.addEventListener('storage', async () => {
-            console.log('Storage Update');
-            setJwt(localStorage.getItem('jwt'));
-            setEmail(localStorage.getItem('email'));
-            if (jwt && email) {
-                const url = "/getSessions"
-                const data = await fetch(url, {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    method: "POST",
-                    body: JSON.stringify({ token: jwt, email: email })
-                }).then(res => {
-                    res.json()
+
+   
+        console.log("IS the token empty ", token)
+        console.log("IS the email empty ", email)
+
+    
+            if (token && email) {
+                const url = "/getSessions?"
+                const data = await fetch(`${url
+                }&token=${
+                  encodeURIComponent(token)
+                }&email=${
+                  encodeURIComponent(email)}`, {
+                  method: 'GET',
+                  headers: {
+                    'Content-type': 'application/json',
+                    Accept: 'application/json',
+                  },
+                }).then((res) => res.json())
+
+                console.log(data);
+
+
                     let alphaObj = {}
                     let metricObj = {}
                     let sessObj = {}
                     // console.log(data)
                     Object.entries(data).forEach(el => {
+                        console.log(el)
                         const [key, value] = el
                         if (key.length == 1) {
                             alphaObj[key] = value
@@ -86,9 +95,13 @@ function Profile() {
                     Object.entries(data).forEach(el => {
                         const [key, value] = el
                         if (key.includes("session")) {
+                            console.log(key)
+                            console.log(value)
                             sessObj[key] = value
                         }
                     })
+
+
 
                     console.log(sessObj)
 
@@ -103,19 +116,22 @@ function Profile() {
                     })
 
                     console.log(sess_wpm)
+                    console.log(Array.from({ length: sess_wpm.length }, (_, i) => i + 1))
                     setSessLabels(Array.from({ length: sess_wpm.length }, (_, i) => i + 1))
+
                     setAccData(sess_acc)
                     setWpmData(sess_wpm)
+
+                    console.log("sess_wpm is ", sess_wpm)
+                    console.log("sess_acc is ", sess_acc)
 
                     setCharAcc(character_accuracy)
                     setCharCorr(correct_characters)
                     setCharIncorr(incorrect_characters)
 
 
-                })
             }
-        });
-    }, [])
+    }, [token, email])
 
     return (
         <Container className="vis-container" maxWidth={1}>
@@ -142,16 +158,10 @@ function Profile() {
                                 datasets: [
                                     {
                                         label: 'Accuracy',
-                                        data: [
-                                            {
-                                                label: 'Accuracy',
-                                                data: accData,
-                                                backgroundColor: [
-                                                    'rgba(191, 191, 191, 0.5)',
-                                                ]
-                                            }
+                                        data: accData,
+                                        backgroundColor: [
+                                            'rgba(191, 191, 191, 0.5)',
                                         ]
-
                                     }
                                 ]
                             }}
@@ -159,9 +169,17 @@ function Profile() {
 
                             options={{
                                 maintainAspectRatio: false,
+                                scales: {
+                                    xAxes: [{
+                                    ticks: {
+                                        suggestedMin: 1,
+                                        beginAtZero: false
+                                    }
+                                    }]
+                                },
                                 title: {
                                     display: true,
-                                    text: 'Accuracy Per Session',
+                                    text: 'Accurac Per Session',
                                     fontSize: 20
                                 },
                                 legend: {
