@@ -44,7 +44,7 @@ def login():
             error = "error connecting to database"
     except Exception as e:
         print(database_cursor.statement)
-        error = "Internal server error" % e
+        error = "Internal server error" + str(e)
     finally:
         if database_connection and database_connection.is_connected():
             if database_cursor:
@@ -54,7 +54,7 @@ def login():
     if error:
         return Response(json.dumps({"message": error }), mimetype='application/json', status='400')
     else:
-        return Response(json.dumps({"message": token.decode("utf-8")}), mimetype='application/json', status='200')
+        return Response(json.dumps({"message": token}), mimetype='application/json', status='200')
    
     
 @app.route('/typing', methods=['POST'])
@@ -68,7 +68,7 @@ def typing():
         return Response(json.dumps({'message': "Unauthorised"}), mimetype='application/json', status='400')
 
     try:
-        payload = jwt.decode(request_data.get("token"), "123")
+        payload = jwt.decode(request_data.get("token"), "123", options={"verify_signature": False})
         print(payload['sub'])
     except Exception as e:
         return Response(json.dumps({'message': "Unauthorised"}), mimetype='application/json', status='400')
@@ -132,7 +132,7 @@ def register():
     if error:
         return Response(json.dumps({"message": error }), mimetype='application/json', status='400')
     else:
-        return Response(json.dumps({"message": "Success registered %s" % email}), mimetype='application/json', status='201')
+        return Response(json.dumps({"message": ("Success registered %s" % email)}), mimetype='application/json', status='201')
 
 
 @app.route('/seed', methods=['GET'])
@@ -150,7 +150,7 @@ def submit():
     
 
     try:
-        payload = jwt.decode(request_data.get("token"), "123")
+        payload = jwt.decode(request_data.get("token"), "123", options={"verify_signature": False})
         user_id = payload['sub']
         email = request_data.get("email")
         error = None
@@ -169,7 +169,7 @@ def submit():
                     return Response(json.dumps({'message': "Unauthorised"}), mimetype='application/json', status='400')
         except Exception as e:
             print(database_cursor.statement)
-            error = "Internal server error" % e
+            error = "Internal server error" + str(e)
         finally:
             if database_connection and database_connection.is_connected():
                 if database_cursor:
@@ -206,7 +206,7 @@ def delete_account():
     database_cursor = None
     error = None
     try:
-        payload = jwt.decode(token, "123")
+        payload = jwt.decode(token, "123", options={"verify_signature": False})
         user_id = payload['sub']
         
         database_connection = mysql.connector.connect(host='eu-cdbr-west-03.cleardb.net',
@@ -224,7 +224,7 @@ def delete_account():
 
     except Exception as e:
         print(database_cursor.statement)
-        error = "Internal server error" % e
+        error = "Internal server error" + str(e)
     finally:
         if database_connection and database_connection.is_connected():
             if database_cursor:
@@ -252,7 +252,7 @@ def update_password():
     database_cursor = None
     error = None
     try:
-        payload = jwt.decode(token, "123")
+        payload = jwt.decode(token, "123", options={"verify_signature": False})
         user_id = payload['sub']
         
         database_connection = mysql.connector.connect(host='eu-cdbr-west-03.cleardb.net',
@@ -270,7 +270,7 @@ def update_password():
 
     except Exception as e:
         print(database_cursor.statement)
-        error = "Internal server error" % e
+        error = "Internal server error" + str(e)
     finally:
         if database_connection and database_connection.is_connected():
             if database_cursor:
@@ -280,7 +280,7 @@ def update_password():
     if error:
         return Response(json.dumps({"message": error }), mimetype='application/json', status='400')
     else:
-        return Response(json.dumps({"message": "successfully deleted account"}), mimetype='application/json', status='200')
+        return Response(json.dumps({"message": "successfully updated password"}), mimetype='application/json', status='200')
    
 
 
@@ -299,7 +299,7 @@ def email():
     database_cursor = None
     error = None
     try:
-        payload = jwt.decode(token, "123")
+        payload = jwt.decode(token, "123", options={"verify_signature": False})
         user_id = payload['sub']
         database_connection = mysql.connector.connect(host='eu-cdbr-west-03.cleardb.net',
                                             database='heroku_8af8fae4116d831',
@@ -321,7 +321,7 @@ def email():
 
     except Exception as e:
         print(database_cursor.statement)
-        error = "Internal server error" % e
+        error = "Internal server error" + str(e)
     finally:
         if database_connection and database_connection.is_connected():
             if database_cursor:
@@ -331,7 +331,7 @@ def email():
     if error:
         return Response(json.dumps({"message": error }), mimetype='application/json', status='400')
     else:
-        return Response(json.dumps({"message": "successfully deleted account"}), mimetype='application/json', status='200')
+        return Response(json.dumps({"message": "successfully updated email"}), mimetype='application/json', status='200')
    
 
 @app.route('/generate_text', methods=['GET'])
@@ -340,7 +340,7 @@ def generate_text():
     email = request.args.get('email')
     
     try:
-        payload = jwt.decode(token, "123")
+        payload = jwt.decode(token, "123", options={"verify_signature": False})
         user_id = payload['sub']
         error = None
         database_connection = None
@@ -358,7 +358,7 @@ def generate_text():
                     return Response(json.dumps({'message': "Unauthorised"}), mimetype='application/json', status='400')
         except Exception as e:
             print(database_cursor.statement)
-            error = "Internal server error" % e
+            error = "Internal server error" + str(e)
         finally:
             if database_connection and database_connection.is_connected():
                 if database_cursor:
@@ -381,7 +381,7 @@ def generate_next_sequence():
     text = request.args.get('text')
     
     try:
-        payload = jwt.decode(token, "123")
+        payload = jwt.decode(token, "123", options={"verify_signature": False})
         user_id = payload['sub']
         error = None
         database_connection = None
@@ -399,7 +399,7 @@ def generate_next_sequence():
                     return Response(json.dumps({'message': "Unauthorised"}), mimetype='application/json', status='400')
         except Exception as e:
             print(database_cursor.statement)
-            error = "Internal server error" % e
+            error = "Internal server error" + str(e)
         finally:
             if database_connection and database_connection.is_connected():
                 if database_cursor:
@@ -415,14 +415,46 @@ def generate_next_sequence():
     
     return Response(json.dumps({"text": generated_text, "master": master, "mastered_characters": mastered_characters}), mimetype='application/json', status='201')
 
-@app.route('/getSessions', methods=['POST'])
-def getSessions():
-    try:
-        request_data = json.loads(request.data)
-    except:
-        return Response(json.dumps({'message': "Invalid JSON data"}), mimetype='application/json', status='400')
 
-    return user_model.get_session_details(request_data)
+@app.route('/getSessions', methods=['GET'])
+def getSessions():
+    token = request.args.get('token')
+    email = request.args.get('email')
+    
+    try:
+        payload = jwt.decode(token, "123", options={"verify_signature": False})
+        user_id = payload['sub']
+        error = None
+        database_connection = None
+        database_cursor = None
+        try:
+            database_connection = mysql.connector.connect(host='eu-cdbr-west-03.cleardb.net',
+                                                database='heroku_8af8fae4116d831',
+                                                user='b1282a2123d519',
+                                                password='29416dad')
+            if database_connection.is_connected():
+                database_cursor = database_connection.cursor()
+                database_cursor.execute("select * from Users where email = %s;", (email,))
+                user = database_cursor.fetchone()
+                if (not user) or  (not user[0] == user_id):
+                    return Response(json.dumps({'message': "Unauthorised"}), mimetype='application/json', status='400')
+        except Exception as e:
+            print(database_cursor.statement)
+            error = "Internal server error" + str(e)
+        finally:
+            if database_connection and database_connection.is_connected():
+                if database_cursor:
+                    database_cursor.close()
+                database_connection.close()
+        if error: 
+            return Response(json.dumps({'message': "Unauthorised"}), mimetype='application/json', status='400')
+   
+    except Exception as e:
+        return Response(json.dumps({'message': "Unauthorised"}), mimetype='application/json', status='400')
+
+    return Response(user_model.get_session_details(request_data), mimetype='application/json', status='201')
+
+
 
 if __name__ == "__main__":
     app.run(port=8000, debug=True)
