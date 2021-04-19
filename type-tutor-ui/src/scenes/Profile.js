@@ -148,7 +148,7 @@ function Profile() {
                 direction="row"
                 justify="space-evenly"
                 alignItems="flex-start">
-                <Grid xs="9">
+                <Grid xs="10">
                     <h1>User Statistics</h1>
 
                     <div className="chart-container">
@@ -171,6 +171,7 @@ function Profile() {
                                 maintainAspectRatio: false,
                                 scales: {
                                     xAxes: [{
+                                    offset: true,
                                     ticks: {
                                         suggestedMin: 1,
                                         beginAtZero: false
@@ -179,7 +180,7 @@ function Profile() {
                                 },
                                 title: {
                                     display: true,
-                                    text: 'Accurac Per Session',
+                                    text: 'Accuracy Per Session',
                                     fontSize: 20
                                 },
                                 legend: {
@@ -208,6 +209,15 @@ function Profile() {
 
                             options={{
                                 maintainAspectRatio: false,
+                                scales: {
+                                    xAxes: [{
+                                    offset: true,
+                                    ticks: {
+                                        suggestedMin: 1,
+                                        beginAtZero: false
+                                    }
+                                    }]
+                                },
                                 title: {
                                     display: true,
                                     text: 'WPM Per Session',
@@ -269,7 +279,7 @@ function Profile() {
                     </div>
                 </Grid>
 
-                <Grid xs="3" zeroMinWidth>
+                <Grid xs="2" zeroMinWidth>
                     <h1 style={{ whiteSpace: 'nowrap' }}>User Control</h1>
                     <Grid container direction="column" spacing={1} style={{ marginTop: '20px' }}>
                         <Grid item>
