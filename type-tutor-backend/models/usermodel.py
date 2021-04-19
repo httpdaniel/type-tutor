@@ -14,8 +14,8 @@ import math
 import statistics
 import tensorflow as tf
 
-keras.backend.set_learning_phase(0)
-model = keras.models.load_model('./rnn_model/model.h5')
+# keras.backend.set_learning_phase(0)
+# model = keras.models.load_model('./rnn_model/model.h5')
 
 
 def get_predicted_text(predictions, temperature, incorrect_characters, character_times, character_index_map, new_character):
@@ -283,7 +283,7 @@ def store_session_details(request_data):
                         except:
                             updated_accuracy = 0
                         updated_character_data.append((updated_correct_characters, updated_incorrect_characters, updated_character_times, updated_accuracy, user_id, i["character_id"]))
-                        testsessions_data.append((updated_correct_characters, updated_incorrect_characters, updated_character_times, updated_accuracy , user_id, i["character_id"], sessionID))
+                        testsessions_data.append((updated_correct_characters, updated_incorrect_characters, updated_character_times, user_id, updated_accuracy , i["character_id"], sessionID))
                     
             database_cursor.executemany(
                 """UPDATE og_user_characters SET correct_characters = %s, incorrect_characters = %s, character_time = %s ,  character_accuracy = %s WHERE user_id = %s and og_user_characters.character_id = %s;""", 
@@ -291,7 +291,7 @@ def store_session_details(request_data):
             )
 
             database_cursor.executemany(
-                "INSERT INTO `testsessions` (`correct_characters` , `incorrect_characters`, `character_time` , `user_id` , `character_id`,`character_accuracy`, `sessionID`) VALUES(%s, %s, %s, %s, %s, %s, %s) ;",
+                "INSERT INTO `testsessions` (`correct_characters` , `incorrect_characters`, `character_time` , `user_id` , `character_accuracy`, `character_id`, `sessionID`) VALUES(%s, %s, %s, %s, %s, %s, %s) ;",
                 testsessions_data
             )
 

@@ -54,7 +54,7 @@ def login():
     if error:
         return Response(json.dumps({"message": error }), mimetype='application/json', status='400')
     else:
-        return Response(json.dumps({"message": token}), mimetype='application/json', status='200')
+        return Response(json.dumps({"message": str(token)}), mimetype='application/json', status='200')
    
     
 @app.route('/typing', methods=['POST'])
@@ -451,7 +451,7 @@ def getSessions():
    
     except Exception as e:
         return Response(json.dumps({'message': "Unauthorised"}), mimetype='application/json', status='400')
-    print(user_model.get_session_details(user_id))
+
     return Response(json.dumps(user_model.get_session_details(user_id)), mimetype='application/json', status='201')
 
 
