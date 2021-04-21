@@ -27,6 +27,8 @@ function KeyboardComplete() {
   const [text, setText] = useState('');
   const [mastery, setMastery] = useState(0);
   const [masteredChars, setMasteredChars] = useState({});
+  const [unlockedChars, setUnlockedChars] = useState({});
+  const [notMastered, setNotMastered] = useState([]);
 
   const [leftPadding, setLeftPadding] = useState(
     new Array(35).fill(' ').join(''),
@@ -70,13 +72,21 @@ function KeyboardComplete() {
     setCurrChar(text.charAt(0));
     setToTypeChar(text.substring(1));
     incorrect.length = 0;
+    setCorrectCount(0);
+    setAccuracy(0);
     // const uniqueKeyset = String.prototype.concat(...new Set(text));
     // const newKeyset = uniqueKeyset.replace(/\s/g, '');
     // console.log(newKeyset);
-    const tests = Object.keys(masteredChars).filter((k) => masteredChars[k] === 1);
-    console.log(tests);
-    const uppercased = tests.map((key) => key.toUpperCase());
-    setKeyset(uppercased);
+    const mchars = Object.keys(masteredChars).filter((k) => masteredChars[k] === true);
+    const uchars = Object.keys(unlockedChars).filter((k) => unlockedChars[k] === true);
+    const uppercased_m = mchars.map((key) => key.toUpperCase());
+    const uppercased_u = uchars.map((key) => key.toUpperCase());
+    console.log('MASTER: ', uppercased_m);
+    console.log('UNLOCK: ', uppercased_u);
+    const difference = uppercased_u.filter((x) => !uppercased_m.includes(x));
+    console.log('DIFF: ', difference);
+    setNotMastered(difference);
+    setKeyset(uppercased_m);
     setLoading(false);
   }, [text]);
 
@@ -95,20 +105,22 @@ function KeyboardComplete() {
       method: 'GET',
       headers: {
         'Content-type': 'application/json',
-        Accept: 'application/json',
+        'Accept': 'application/json',
       },
     }).then((res) => res.json()).then(
       (res) => {
-        console.log(res);
+        console.log('Res: ', res);
         const str = JSON.stringify(res);
         const newText = res.text;
         const newMaster = res.master;
         const masterChars = res.mastered_characters;
+        const unlockChars = res.unlocked_characters;
         console.log('Text: ', newText);
         console.log('Master: ', newMaster);
         console.log('Mastered: ', masterChars);
         setMastery(newMaster);
         setMasteredChars(masterChars);
+        setUnlockedChars(unlockChars);
         // const tests = Object.keys(masterChars).filter((k) => masterChars[k] === 0);
         // console.log('KEYS: ', tests);
         // setKeyset(tests);
@@ -123,12 +135,12 @@ function KeyboardComplete() {
       method: 'POST',
       headers: {
         'Content-type': 'application/json',
-        Accept: 'application/json',
+        'Accept': 'application/json',
       },
       body: JSON.stringify(info),
     }).then((res) => res.json()).then(
       (res) => {
-        console.log(res);
+        console.log('Res: ', res);
         const str = JSON.stringify(res);
         console.log(str);
       },
@@ -240,6 +252,7 @@ function KeyboardComplete() {
             accuracyscore={accuracy}
             key={keyset}
             keyset={keyset}
+            notmastered={notMastered}
           />
           <div className="main__text">
             {focusPopup ? (
