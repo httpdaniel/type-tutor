@@ -25,5 +25,6 @@ module.exports = {
     'no-continue': 'off',
     'no-use-before-define': 'off',
     'quote-props': 'off',
+    'no-nested-ternary': 'off',
   },
 };
