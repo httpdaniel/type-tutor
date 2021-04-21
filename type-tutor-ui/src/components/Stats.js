@@ -4,7 +4,7 @@ import KeysetBox from './KeysetBox';
 import '../styles/App.scss';
 
 function Stats(props) {
-  const { wordsperminute, numerrors, accuracyscore, keyset } = props;
+  const { wordsperminute, numerrors, accuracyscore, keyset, notmastered } = props;
 
   const [speed, setSpeed] = useState(0);
   const [speedChange, setSpeedChange] = useState(1.2);
@@ -24,7 +24,8 @@ function Stats(props) {
 
   for(let i = 0; i<alphabet.length; i++) {
     const open = keyset.includes(alphabet[i]);
-    keybox.push(<KeysetBox key={i} keys={[alphabet[i], open]}></KeysetBox>)
+    const unlocked = notmastered.includes(alphabet[i]);
+    keybox.push(<KeysetBox key={i} keys={[alphabet[i], open]} unlocked={unlocked}></KeysetBox>)
   }
 
   return (
