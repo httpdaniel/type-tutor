@@ -13,9 +13,10 @@ import random
 import math
 import statistics
 import tensorflow as tf
-
+import string
 keras.backend.set_learning_phase(0)
 model = keras.models.load_model('./rnn_model/model.h5')
+# graph = tf.get_default_graph()
 
 
 def get_predicted_text(predictions, temperature, incorrect_characters, character_times, character_index_map, new_character):
@@ -33,24 +34,6 @@ def get_predicted_text(predictions, temperature, incorrect_characters, character
     exponential_predictions = np.exp(predictions)
     return np.argmax(np.random.multinomial(1, exponential_predictions / np.sum(exponential_predictions), 1))
 
-def characters_mastered(incorrect_characters, correct_characters, wpm, inverse_character_index_map):
-    characters = {}
-    print(incorrect_characters)
-    print(correct_characters)
-    for i in range(len(incorrect_characters)):
-        if (incorrect_characters[i] > 0.1 and correct_characters[i] < 0.9) or correct_characters[i] == 0:
-            characters[inverse_character_index_map[i]] = 0
-        else:
-            characters[inverse_character_index_map[i]] = 1
-    
-    return characters
-
-def is_master(incorrect_characters, wpm):
-    incorrect_characters[0] = 1
-    errors = np.array([i for i in incorrect_characters])
-    mastered_errors = statistics.mean(errors) > 0.9 and ((errors >= 0.9).sum() == errors.size).astype(np.int)
-    return mastered_errors and wpm >= 40
-
 def min_max_normalisation(prob, character_index_map):
     prob_a = [None for i in range(len(character_index_map))]
     inverse_index_map = {}
@@ -66,6 +49,9 @@ def min_max_normalisation(prob, character_index_map):
     return prob_a
 
 def generate_text(user_id, seed_sequence = None):
+    # global graph
+    # with graph.as_default():
+
     word_len = 50
     wordnet_data = "" 
 
@@ -111,6 +97,7 @@ def generate_text(user_id, seed_sequence = None):
     except Exception as e:
         print(e)
         return "", False, {}
+        pass
     finally:
         if database_connection and database_connection.is_connected():
             if database_cursor:
@@ -120,8 +107,8 @@ def generate_text(user_id, seed_sequence = None):
     incorrect_characters[" "] = 1
     character_times[" "] = 1
 
-    incorrect_characters_org = dict(incorrect_characters)
-    incorrect_characters_org = min_max_normalisation(incorrect_characters_org, character_index_map)
+    incorrect_characters_orginal = dict(incorrect_characters)
+    incorrect_characters_orginal = min_max_normalisation(incorrect_characters_orginal, character_index_map)
 
     new_user = False
     
@@ -132,20 +119,30 @@ def generate_text(user_id, seed_sequence = None):
             character_times[k] = 1
 
     correct_characters[" "] = 1
-    
+    character_acc = {}
+
+    unlock_seq = ['e', 'a', 'r', 'i', 'o', 't', 'n', 's', 'l', 'c', 'u', 'd', 'p', 'm', 'h', 'g', 'b', 'f', 'y', 'w', 'k', 'v', 'x', 'z', 'j', 'q']
     unlocked_characters = ['e', 'a', 'r', 'i', 'o', 't' ]
+    
+    for character in unlock_seq:
+        try:
+            character_acc[character] = correct_characters[character] / (correct_characters[character] + incorrect_characters[character])
+            if character == " ":
+                character_acc[character] = 1
+        except:
+            character_acc[character] = 0
+    
     if not new_user:
         unlock_next_character = True
         found_zero_character = False
         next_character_index = 0
-        unlock_seq = ['e', 'a', 'r', 'i', 'o', 't', 'n', 's', 'l', 'c', 'u', 'd', 'p', 'm', 'h', 'g', 'b', 'f', 'y', 'w', 'k', 'v', 'x', 'z', 'j', 'q']
         for i in unlock_seq:
-            if found_zero_character and incorrect_characters[i] != 0:
+            if found_zero_character and character_acc[i] != 0:
                 unlock_next_character = False
                 break
-            if incorrect_characters[i] == 0 and correct_characters[i] == 0:
+            if character_acc[i] == 0:
                 found_zero_character = True
-            elif incorrect_characters[i] > 0.1:
+            elif character_acc[i] < 0.9:
                 unlock_next_character = False
                 break
             else:
@@ -159,18 +156,18 @@ def generate_text(user_id, seed_sequence = None):
                 mean_character_weights = []
                 for i in range(next_character_index-1):
                     if incorrect_characters[unlock_seq[i]] != 0:
-                        mean_character_weights.append(incorrect_characters[i])
+                        mean_character_weights.append(incorrect_characters[unlock_seq[i]])
                 if len(mean_character_weights):
                     incorrect_characters[unlock_seq[next_character_index]] = statistics.mean(mean_character_weights) * 2
                 else: 
                     incorrect_characters[unlock_seq[next_character_index]] = 4
 
-        min_val = min([v for k,v in incorrect_characters.items() if v > 0] or [1])
-
-        for i in unlocked_characters:
-            if incorrect_characters[i] == 0:
-                incorrect_characters[i] = min_val / 3
+    min_val = min([v for k,v in incorrect_characters.items() if v > 0] or [1])
+    for i in unlocked_characters:
+        if incorrect_characters[i] == 0:
+            incorrect_characters[i] = min_val / 3
     
+
     incorrect_characters = min_max_normalisation(incorrect_characters, character_index_map)
     character_times = min_max_normalisation(character_times, character_index_map)
     if not seed_sequence:
@@ -202,20 +199,11 @@ def generate_text(user_id, seed_sequence = None):
     org_text = " ".join(org_text.split(" "))
     all_generated_text = " ".join((all_generated_text[len(org_text):len(all_generated_text)]).split(" ")[:-2]).strip()
 
-    correct_characters_normalised = [0 for k, v in correct_characters.items()]
-    
-    for k, v in correct_characters.items():
-        try:
-            correct_characters_normalised[character_index_map[k]] = ((v - correct_characters[min(correct_characters, key=correct_characters.get)]) / (correct_characters[max(correct_characters, key=correct_characters.get)] - correct_characters[min(correct_characters, key=correct_characters.get)]))
-        except:
-            correct_characters_normalised[character_index_map[k]] = 0
+    mastered_chars = { k: v > 0.9 and wpm >= 40 for k,v in character_acc.items() }
+    unlocked_characters_dict = {i: i in unlocked_characters for i in unlock_seq}
+    mastered_all_characters = all([v for k,v in mastered_chars.items()])
 
-    mastered_chars = characters_mastered(incorrect_characters_org, correct_characters_normalised, wpm, inverse_character_index_map)
-    del mastered_chars[' ']
-
-
-    return (all_generated_text, int(is_master(incorrect_characters_org, wpm)), mastered_chars)
-
+    return (all_generated_text, mastered_all_characters, mastered_chars, unlocked_characters_dict)
 
 
 def store_session_details(request_data):
@@ -223,17 +211,9 @@ def store_session_details(request_data):
     wpm  = request_data.get("wpm")
     correct_characters  = request_data.get("correct_characters")
     character_time   = request_data.get("character_time")
-    # character_id    = request_data.get("character_id")
     user_id     = request_data.get("user_id")
     character_accuracy    = request_data.get("character_accuracy")
     totalAccuracy    = request_data.get("total_accuracy")
-    #accuracy
-
-    # correct_characters_avg = json.dumps(correct_characters_avg)
-    # incorrect_characters_avg = json.dumps(incorrect_characters_avg)
-    # total_occurances  = json.dumps(total_occurances)
-    # character_time = json.dumps(character_time)
-
 
     database_connection = None
     database_cursor = None
@@ -248,13 +228,11 @@ def store_session_details(request_data):
         if database_connection.is_connected():
             database_cursor = database_connection.cursor(dictionary=True)
 
-            print(user_id)
             database_cursor.execute("SELECT MAX(sessionID) as sessionID FROM sessionstats WHERE user_id = '{k}' limit 1 ;".format(k = user_id))
             lastSession = database_cursor.fetchone()
             if not lastSession["sessionID"]:
                 sessionID = 1
             else:
-                print(lastSession["sessionID"])
                 sessionID = int(lastSession["sessionID"]) + 1
 
             database_cursor.execute("INSERT INTO `sessionstats` (`user_id` , `WPM`  , `sessionID`, `totalAccuracy`) VALUES(%s, %s, %s, %s) ;",(user_id, wpm, sessionID, totalAccuracy))
@@ -272,6 +250,9 @@ def store_session_details(request_data):
             updated_character_data = []
             testsessions_data = []
 
+            correct_characters = {}
+            incorrect_characters = {}
+
             for k, v in request_data["correct_characters"].items():
                 for i in character_data:
                     if i['character_name'] == k:
@@ -282,8 +263,11 @@ def store_session_details(request_data):
                             updated_accuracy = (existing_users["tests_taken"] * i["character_accuracy"] + updated_correct_characters / (updated_incorrect_characters +updated_correct_characters)) / (updated_test_taken)
                         except:
                             updated_accuracy = 0
+                        correct_characters[k] = updated_correct_characters
+                        incorrect_characters[k] = updated_incorrect_characters
+
                         updated_character_data.append((updated_correct_characters, updated_incorrect_characters, updated_character_times, updated_accuracy, user_id, i["character_id"]))
-                        testsessions_data.append((updated_correct_characters, updated_incorrect_characters, updated_character_times, user_id, updated_accuracy , i["character_id"], sessionID))
+                        testsessions_data.append((updated_correct_characters, updated_incorrect_characters, updated_character_times, updated_accuracy , user_id, i["character_id"], sessionID))
                     
             database_cursor.executemany(
                 """UPDATE og_user_characters SET correct_characters = %s, incorrect_characters = %s, character_time = %s ,  character_accuracy = %s WHERE user_id = %s and og_user_characters.character_id = %s;""", 
@@ -291,33 +275,90 @@ def store_session_details(request_data):
             )
 
             database_cursor.executemany(
-                "INSERT INTO `testsessions` (`correct_characters` , `incorrect_characters`, `character_time` , `user_id` , `character_accuracy`, `character_id`, `sessionID`) VALUES(%s, %s, %s, %s, %s, %s, %s) ;",
+                "INSERT INTO `testsessions` (`correct_characters` , `incorrect_characters`, `character_time` , `user_id` , `character_id`,`character_accuracy`, `sessionID`) VALUES(%s, %s, %s, %s, %s, %s, %s) ;",
                 testsessions_data
             )
 
             database_cursor.execute("UPDATE users set words_per_min = %s, tests_taken = %s;", (updated_wpm, updated_test_taken))
             database_connection.commit()
+            
+            
+            new_user = False
+            correct_characters[" "] = 1
+            incorrect_characters[" "] = 1
+    
+            for k, v in correct_characters.items():
+                if v == 0 and (k == "e" or k == "a" or k == "r" or k == "i" or k == "o" or k == "t"):
+                    new_user = True
+                    incorrect_characters[k] = 1
+                    character_times[k] = 1
+
+            correct_characters[" "] = 1
+            character_acc = {}
+
+            unlock_seq = ['e', 'a', 'r', 'i', 'o', 't', 'n', 's', 'l', 'c', 'u', 'd', 'p', 'm', 'h', 'g', 'b', 'f', 'y', 'w', 'k', 'v', 'x', 'z', 'j', 'q']
+            unlocked_characters = ['e', 'a', 'r', 'i', 'o', 't' ]
+            
+            for character in unlock_seq:
+                try:
+                    character_acc[character] = correct_characters[character] / (correct_characters[character] + incorrect_characters[character])
+                    if character == " ":
+                        character_acc[character] = 1
+                except:
+                    character_acc[character] = 0
+
+            wpm = updated_wpm
+            
+            if not new_user:
+                unlock_next_character = True
+                found_zero_character = False
+                next_character_index = 0
+                for i in unlock_seq:
+                    if found_zero_character and character_acc[i] != 0:
+                        unlock_next_character = False
+                        break
+                    if character_acc[i] == 0:
+                        found_zero_character = True
+                    elif character_acc[i] < 0.9:
+                        unlock_next_character = False
+                        break
+                    else:
+                        next_character_index += 1
+                        if next_character_index < len(unlock_seq):
+                            unlocked_characters.append(unlock_seq[next_character_index])
+                    
+                if unlock_next_character  and wpm >= 40:
+                    if next_character_index < len(unlock_seq):
+                        unlocked_characters.append(unlock_seq[next_character_index])
+                        mean_character_weights = []
+                        for i in range(next_character_index-1):
+                            if incorrect_characters[unlock_seq[i]] != 0:
+                                mean_character_weights.append(incorrect_characters[unlock_seq[i]])
+                        if len(mean_character_weights):
+                            incorrect_characters[unlock_seq[next_character_index]] = statistics.mean(mean_character_weights) * 2
+                        else: 
+                            incorrect_characters[unlock_seq[next_character_index]] = 4
+
+            mastered_chars = { k: v > 0.9 and wpm >= 40 for k,v in character_acc.items() }
+            unlocked_characters_dict = {i: i in unlocked_characters for i in unlock_seq}
+            mastered_all_characters = all([v for k,v in mastered_chars.items()])
 
     except Exception as e:
         print(e, "error")
-        return (-1, None)
+        return (-1, None, None, None)
     finally:
         if database_connection and database_connection.is_connected():
             if database_cursor:
                 database_cursor.close()
             database_connection.close()
-    total_errors = []
-    for i in range(len(updated_character_data)):
-        try:
-            total_errors.append(updated_character_data[i][0] / (updated_character_data[i][0] + updated_character_data[i][1]) )
-        except:
-            total_errors.append(0)
-    return (1, int(is_master(total_errors, wpm)))
-
-
-def get_session_details(user_id):
-
     
+    return (1, mastered_all_characters, mastered_chars, unlocked_characters_dict)
+
+
+
+def get_session_details(request_data):
+
+    user_id = request_data.get("user_id")
     try: 
         database_connection = mysql.connector.connect(
             host='eu-cdbr-west-03.cleardb.net',
