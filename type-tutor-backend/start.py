@@ -54,6 +54,10 @@ def login():
     if error:
         return Response(json.dumps({"message": error }), mimetype='application/json', status='400')
     else:
+        try:
+            token = token.decode("utf-8")
+        except:
+            pass
         return Response(json.dumps({"message": str(token)}), mimetype='application/json', status='200')
    
     
@@ -110,8 +114,8 @@ def register():
 
                 database_cursor.executemany("""
                         INSERT INTO og_user_characters (
-                            incorrect_characters, correct_characters, total_occurances, character_time, character_id, user_id
-                        ) VALUES (0, 0, 0, 0, %s, %s);
+                            incorrect_characters, correct_characters, character_id, user_id
+                        ) VALUES (0, 0, %s, %s);
                     """, [(i[0], user_id) for i in characters ])
 
                 database_connection.commit()
@@ -134,11 +138,6 @@ def register():
     else:
         return Response(json.dumps({"message": ("Success registered %s" % email)}), mimetype='application/json', status='201')
 
-
-@app.route('/seed', methods=['GET'])
-def seed():
-    if request.method == 'GET':
-        return seed()
 
 
 @app.route('/submit', methods=['POST'])

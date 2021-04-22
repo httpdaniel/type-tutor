@@ -19,16 +19,13 @@ model = keras.models.load_model('./rnn_model/model.h5')
 # graph = tf.get_default_graph()
 
 
-def get_predicted_text(predictions, temperature, incorrect_characters, character_times, character_index_map, new_character):
+def get_predicted_text(predictions, temperature, incorrect_characters, character_index_map, new_character):
     if new_character == " ":
         predictions[character_index_map[" "]] = 0
     most_common_predictions = predictions
 
     if any((incorrect_characters[v] != 0 and v != 0) for v in range(len(incorrect_characters))):
         most_common_predictions = most_common_predictions * np.array(incorrect_characters) 
-
-    if any((character_times[v] != 0 and v != 0) for v in range(len(character_times))):
-        most_common_predictions = most_common_predictions * np.array(character_times) 
 
     predictions = np.log(np.asarray(most_common_predictions).astype('float64')) / temperature
     exponential_predictions = np.exp(predictions)
@@ -72,7 +69,6 @@ def generate_text(user_id, seed_sequence = None):
     error = None
     incorrect_characters = {}
     correct_characters = {}
-    character_times = {}
     try: 
         database_connection = mysql.connector.connect(
             host='eu-cdbr-west-03.cleardb.net',
@@ -82,16 +78,14 @@ def generate_text(user_id, seed_sequence = None):
         )
         if database_connection.is_connected():
             database_cursor = database_connection.cursor(dictionary=True)
-            database_cursor.execute("select words_per_min, incorrect_characters, correct_characters, character_time, character_name from og_user_characters inner join characters on characters.character_id = og_user_characters.character_id inner join users on og_user_characters.user_id = users.user_id where users.user_id = %s;", (user_id,))
+            database_cursor.execute("select words_per_min, incorrect_characters, correct_characters, character_name from og_user_characters inner join characters on characters.character_id = og_user_characters.character_id inner join users on og_user_characters.user_id = users.user_id where users.user_id = %s;", (user_id,))
             character_data = database_cursor.fetchall()
             for i in character_data:
                 try:
                     correct_characters[i["character_name"]] = i["correct_characters"]
                     incorrect_characters[i["character_name"]] = float(i["incorrect_characters"]) / float((i["incorrect_characters"] + i["correct_characters"]))
-                    character_times[i["character_name"]] = float(i["character_time"])
                 except:
                     incorrect_characters[i["character_name"]] = 0
-                    character_times[i["character_name"]] = 0
 
             wpm = character_data[0]["words_per_min"]
     except Exception as e:
@@ -105,7 +99,6 @@ def generate_text(user_id, seed_sequence = None):
             database_connection.close()
 
     incorrect_characters[" "] = 1
-    character_times[" "] = 1
 
     incorrect_characters_orginal = dict(incorrect_characters)
     incorrect_characters_orginal = min_max_normalisation(incorrect_characters_orginal, character_index_map)
@@ -116,7 +109,6 @@ def generate_text(user_id, seed_sequence = None):
         if v == 0 and (k == "e" or k == "a" or k == "r" or k == "i" or k == "o" or k == "t"):
             new_user = True
             incorrect_characters[k] = 1
-            character_times[k] = 1
 
     correct_characters[" "] = 1
     character_acc = {}
@@ -169,7 +161,6 @@ def generate_text(user_id, seed_sequence = None):
     
 
     incorrect_characters = min_max_normalisation(incorrect_characters, character_index_map)
-    character_times = min_max_normalisation(character_times, character_index_map)
     if not seed_sequence:
         start_index = random.randint(0, len(wordnet_data)- word_len -1)
         generated_text = wordnet_data[start_index: start_index+word_len]
@@ -185,12 +176,12 @@ def generate_text(user_id, seed_sequence = None):
             seed_data[0,j,character_index_map[generated_text[j]]] = 1.
         preds = model.predict(seed_data, batch_size=1)[0]
 
-        net_predicted_character = characters[get_predicted_text(preds, 0.8, [1 for _ in range(characters_len)], [1 for _ in range(characters_len)], character_index_map, new_character)]
+        net_predicted_character = characters[get_predicted_text(preds, 0.8, [1 for _ in range(characters_len)], character_index_map, new_character)]
 
         if net_predicted_character == " ":
             new_character = " "
         else:
-            new_character = characters[get_predicted_text(preds, 0.8, incorrect_characters, character_times, character_index_map, new_character)]
+            new_character = characters[get_predicted_text(preds, 0.8, incorrect_characters, character_index_map, new_character)]
         generated_text += new_character
 
         generated_text = generated_text[1:]
@@ -210,7 +201,6 @@ def store_session_details(request_data):
     incorrect_characters  = request_data.get("incorrect_characters")
     wpm  = request_data.get("wpm")
     correct_characters  = request_data.get("correct_characters")
-    character_time   = request_data.get("character_time")
     user_id     = request_data.get("user_id")
     character_accuracy    = request_data.get("character_accuracy")
     totalAccuracy    = request_data.get("total_accuracy")
@@ -258,7 +248,6 @@ def store_session_details(request_data):
                     if i['character_name'] == k:
                         updated_correct_characters = (existing_users["tests_taken"] * i["correct_characters"] + request_data["correct_characters"][k]) / (updated_test_taken)
                         updated_incorrect_characters = (existing_users["tests_taken"] * i["incorrect_characters"] + request_data["incorrect_characters"][k]) / (updated_test_taken)
-                        updated_character_times = (existing_users["tests_taken"] * i["character_time"] + request_data["character_time"][k]) / (updated_test_taken)
                         try:
                             updated_accuracy = (existing_users["tests_taken"] * i["character_accuracy"] + updated_correct_characters / (updated_incorrect_characters +updated_correct_characters)) / (updated_test_taken)
                         except:
@@ -266,16 +255,16 @@ def store_session_details(request_data):
                         correct_characters[k] = updated_correct_characters
                         incorrect_characters[k] = updated_incorrect_characters
 
-                        updated_character_data.append((updated_correct_characters, updated_incorrect_characters, updated_character_times, updated_accuracy, user_id, i["character_id"]))
-                        testsessions_data.append((updated_correct_characters, updated_incorrect_characters, updated_character_times, updated_accuracy , user_id, i["character_id"], sessionID))
+                        updated_character_data.append((updated_correct_characters, updated_incorrect_characters, updated_accuracy, user_id, i["character_id"]))
+                        testsessions_data.append((updated_correct_characters, updated_incorrect_characters, updated_accuracy , user_id, i["character_id"], sessionID))
                     
             database_cursor.executemany(
-                """UPDATE og_user_characters SET correct_characters = %s, incorrect_characters = %s, character_time = %s ,  character_accuracy = %s WHERE user_id = %s and og_user_characters.character_id = %s;""", 
+                """UPDATE og_user_characters SET correct_characters = %s, incorrect_characters = %s,  character_accuracy = %s WHERE user_id = %s and og_user_characters.character_id = %s;""", 
                 updated_character_data
             )
 
             database_cursor.executemany(
-                "INSERT INTO `testsessions` (`correct_characters` , `incorrect_characters`, `character_time` , `user_id` , `character_id`,`character_accuracy`, `sessionID`) VALUES(%s, %s, %s, %s, %s, %s, %s) ;",
+                "INSERT INTO `testsessions` (`correct_characters` , `incorrect_characters` , `user_id` , `character_id`,`character_accuracy`, `sessionID`) VALUES(%s, %s, %s, %s, %s, %s) ;",
                 testsessions_data
             )
 
@@ -291,7 +280,6 @@ def store_session_details(request_data):
                 if v == 0 and (k == "e" or k == "a" or k == "r" or k == "i" or k == "o" or k == "t"):
                     new_user = True
                     incorrect_characters[k] = 1
-                    character_times[k] = 1
 
             correct_characters[" "] = 1
             character_acc = {}
