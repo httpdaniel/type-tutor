@@ -110,8 +110,8 @@ def register():
 
                 database_cursor.executemany("""
                         INSERT INTO og_user_characters (
-                            incorrect_characters, correct_characters, total_occurances, character_time, character_id, user_id
-                        ) VALUES (0, 0, 0, 0, %s, %s);
+                            incorrect_characters, correct_characters, character_time, character_id, user_id
+                        ) VALUES (0, 0, 0, %s, %s);
                     """, [(i[0], user_id) for i in characters ])
 
                 database_connection.commit()
