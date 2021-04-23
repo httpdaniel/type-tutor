@@ -157,6 +157,7 @@ function KeyboardComplete() {
   }
 
   function endGame() {
+    setStartTime(undefined);
     setGameOver(true);
     const incorrect_info = {};
     const correct_info = {};

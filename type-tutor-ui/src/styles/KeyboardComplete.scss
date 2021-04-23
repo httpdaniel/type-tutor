@@ -45,11 +45,12 @@ input:focus {
 
 .Character-out {
   padding: 0;
-  color: #444444;
+  
 }
 
 .Character-in {
   padding: 0;
+  color: #444444;
 }
 
 @mixin animation-mixin($name, $from, $to) {
