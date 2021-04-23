@@ -75,6 +75,9 @@ function KeyboardComplete() {
     incorrect.length = 0;
     setCorrectCount(0);
     setAccuracy(0);
+    setWpm(0);
+    setErrors(0);
+    setWordCount(0);
     // const uniqueKeyset = String.prototype.concat(...new Set(text));
     // const newKeyset = uniqueKeyset.replace(/\s/g, '');
     // console.log(newKeyset);
