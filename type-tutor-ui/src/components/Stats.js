@@ -20,13 +20,28 @@ function Stats(props) {
 
   const [currentKey, setCurrentKey] = useState('');
 
+  let firstLesson = false;
+
   const alphabet = ['E', 'A', 'R', 'I', 'O', 'T', 'N', 'S', 'L', 'C', 'U', 'D', 'P', 'M', 'H', 'G', 'B', 'F', 'Y', 'W', 'K', 'V', 'X', 'Z', 'J', 'Q'];
 
-  for(let i = 0; i<alphabet.length; i++) {
-    const open = keyset.includes(alphabet[i]);
-    const unmastered = notmastered.includes(alphabet[i]);
-    const curr = alphabet[i] === current;
-    keybox.push(<KeysetBox key={i} current={curr} keys={[alphabet[i], open]} unmastered={unmastered}></KeysetBox>)
+  if (notmastered.toString() === ['E', 'A', 'R', 'I', 'O'].toString()) {
+    firstLesson = true;
+  }
+
+  if (firstLesson === true) {
+    for(let i = 0; i<alphabet.length; i++) {
+      const open = keyset.includes(alphabet[i]);
+      const unmastered = notmastered.includes(alphabet[i]);
+      const curr = ['E', 'A', 'R', 'I', 'O', 'T'].includes(alphabet[i]);
+      keybox.push(<KeysetBox key={i} current={curr} keys={[alphabet[i], false]} unmastered={false}></KeysetBox>)
+    }
+  } else {
+    for(let i = 0; i<alphabet.length; i++) {
+      const open = keyset.includes(alphabet[i]);
+      const unmastered = notmastered.includes(alphabet[i]);
+      const curr = alphabet[i] === current;
+      keybox.push(<KeysetBox key={i} current={curr} keys={[alphabet[i], open]} unmastered={unmastered} first={firstLesson}></KeysetBox>)
+    }
   }
 
   return (
@@ -59,7 +74,7 @@ function Stats(props) {
         {keybox}
       </div>
       <div className="statbox__bottom">
-        Current Key: <KeysetBox keys={[current, false]} unmastered={false} current={true}></KeysetBox>
+        Current Key: {firstLesson ? " " : <KeysetBox keys={[current, false]} unmastered={false} current={true}></KeysetBox>}
       </div>
     </div>
   );
