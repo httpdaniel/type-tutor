@@ -54,7 +54,7 @@ body {
   justify-content: center;
   background-color: $bg-color;
   .main__body {
-    width: 50vw;
+    width: 66vw;
   }
   .main__text {
     height: 20vh;
@@ -62,6 +62,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    width: 100%;
     .out__of__focus {
       z-index: 999;
       position: absolute;
@@ -80,6 +81,7 @@ body {
       #words__input {
         width: 100%;
         height: auto;
+        overflow: hidden;
       }
     }
     #words.blurred {
@@ -105,6 +107,11 @@ body {
     flex-direction: row;
     align-items: center;
   }
+  .statbox__bottom {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
   .keyset__box__open {
     height: 25px;
     width: 25px;
@@ -120,7 +127,22 @@ body {
     display: flex;
     flex-direction: column;
   }
-  .keyset__box__unlocked {
+  .keyset__box__unmastered {
+    height: 25px;
+    width: 25px;
+    background-color: rgb(202, 86, 86);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-left: 1px;
+    margin-right: 1px;
+    margin-top: 8px;
+    margin-bottom: 4px;
+    color: rgb(68, 68, 68);
+    display: flex;
+    flex-direction: column;
+  }
+  .keyset__box__current {
     height: 25px;
     width: 25px;
     background-color: rgb(179, 179, 179);
@@ -160,6 +182,11 @@ body {
   // max-width: 850px;
   // height: 100%;
   // width: 100%;
+}
+
+.stat__span {
+  padding-right: 10px;
+  padding-left: 5px;
 }
 
 .chart-container {

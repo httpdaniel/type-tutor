@@ -29,6 +29,7 @@ function KeyboardComplete() {
   const [masteredChars, setMasteredChars] = useState({});
   const [unlockedChars, setUnlockedChars] = useState({});
   const [notMastered, setNotMastered] = useState([]);
+  const [currKey, setCurrKey] = useState('');
 
   const [leftPadding, setLeftPadding] = useState(
     new Array(35).fill(' ').join(''),
@@ -85,7 +86,11 @@ function KeyboardComplete() {
     console.log('UNLOCK: ', uppercased_u);
     const difference = uppercased_u.filter((x) => !uppercased_m.includes(x));
     console.log('DIFF: ', difference);
+    const curr = difference[difference.length - 1];
+    console.log('CURR:', curr);
+    difference.pop();
     setNotMastered(difference);
+    setCurrKey(curr);
     setKeyset(uppercased_m);
     setLoading(false);
   }, [text]);
@@ -253,6 +258,7 @@ function KeyboardComplete() {
             key={keyset}
             keyset={keyset}
             notmastered={notMastered}
+            current={currKey}
           />
           <div className="main__text">
             {focusPopup ? (
