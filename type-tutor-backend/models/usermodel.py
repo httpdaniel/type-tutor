@@ -207,12 +207,12 @@ def generate_text(user_id, seed_sequence = None):
 
 
 def store_session_details(request_data):
-    incorrect_characters  = request_data.get("incorrect_characters")
+    incorrect_characters = request_data.get("incorrect_characters")
     wpm  = request_data.get("wpm")
-    correct_characters  = request_data.get("correct_characters")
-    character_time   = request_data.get("character_time")
-    user_id     = request_data.get("user_id")
-    character_accuracy    = request_data.get("character_accuracy")
+    correct_characters = request_data.get("correct_characters")
+    # character_time = request_data.get("character_time")
+    user_id = request_data.get("user_id")
+    character_accuracy = request_data.get("character_accuracy")
     totalAccuracy    = request_data.get("total_accuracy")
 
     database_connection = None
@@ -267,7 +267,7 @@ def store_session_details(request_data):
                         incorrect_characters[k] = updated_incorrect_characters
 
                         updated_character_data.append((updated_correct_characters, updated_incorrect_characters, updated_character_times, updated_accuracy, user_id, i["character_id"]))
-                        testsessions_data.append((updated_correct_characters, updated_incorrect_characters, updated_character_times, updated_accuracy , user_id, i["character_id"], sessionID))
+                        testsessions_data.append((updated_correct_characters, updated_incorrect_characters, updated_character_times, user_id, updated_accuracy, i["character_id"], sessionID))
                     
             database_cursor.executemany(
                 """UPDATE og_user_characters SET correct_characters = %s, incorrect_characters = %s, character_time = %s ,  character_accuracy = %s WHERE user_id = %s and og_user_characters.character_id = %s;""", 
@@ -275,7 +275,7 @@ def store_session_details(request_data):
             )
 
             database_cursor.executemany(
-                "INSERT INTO `testsessions` (`correct_characters` , `incorrect_characters`, `character_time` , `user_id` , `character_id`,`character_accuracy`, `sessionID`) VALUES(%s, %s, %s, %s, %s, %s, %s) ;",
+                "INSERT INTO `testsessions` (`correct_characters` , `incorrect_characters`, `character_time` , `user_id` , `character_accuracy`, `character_id`, `sessionID`) VALUES(%s, %s, %s, %s, %s, %s, %s) ;",
                 testsessions_data
             )
 
@@ -356,9 +356,9 @@ def store_session_details(request_data):
 
 
 
-def get_session_details(request_data):
+def get_session_details(user_id):
 
-    user_id = request_data.get("user_id")
+    # user_id = request_data.get("user_id")
     try: 
         database_connection = mysql.connector.connect(
             host='eu-cdbr-west-03.cleardb.net',
