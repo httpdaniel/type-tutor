@@ -3,7 +3,7 @@ import React from 'react';
 import '../styles/App.scss';
 
 function KeysetBox(props) {
-  const { keys, unmastered, current } = props;
+  const { keys, unmastered, current, first } = props;
 
   return (
     <div>
