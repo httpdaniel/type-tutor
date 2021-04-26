@@ -17,7 +17,7 @@ TypeTutor is an adaptive touch typing tutor based on the philosophy of mastery l
 9. Node
 10. React
 
-## Install Dependencies
+## Installing The Dependencies
 
 Backend
 
