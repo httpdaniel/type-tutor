@@ -14,7 +14,7 @@ TypeTutor is an adaptive touch typing tutor based on the philosophy of mastery l
 3. Flask (Note: ensure 1.1.1 is the version of Flask being used)
 4. Bcrypt (Note: ensure 1.1.1 is the version of Bcrypt being used)
 5. Keras (Note: ensure you are using a TensorFlow backend and 2.4.3 is the version of Keras used)
-6. Tensorflow (ensure 2.4.1 is the version of Tensorflow learn being used)
+6. TensorFlow (ensure 2.4.1 is the version of TensorFlow learn being used)
 7. pip (Note: ensure you have pip mapped to the pip3 environment variable)
 8. npm
 9. Node
@@ -25,12 +25,12 @@ TypeTutor is an adaptive touch typing tutor based on the philosophy of mastery l
 Backend
 
 1. To install the project dependencies for the backend, change directory into type-tutor-backend of the downloaded project
-2. run the command "pip3 install -r requirements.txt"
+2. Run the command "pip3 install -r requirements.txt"
 
 Frontend
 
 1. To install the project dependencies for the frontend change directory into type-tutor-ui of the downloaded project
-2. run the command "npm install"
+2. Run the command "npm install"
 
 ## Running The Project
 
