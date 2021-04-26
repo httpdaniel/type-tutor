@@ -1,6 +1,6 @@
 # Type Tutor
 
-![Alt text](type-tutor-ui/src/assets/logos/TypeTutor_Logo_Transparent.png?raw=true)
+![Logo](type-tutor-ui/src/assets/logos/TypeTutor_Logo_Transparent.png?raw=true)
 
 TypeTutor is an adaptive touch typing tutor based on the philosophy of mastery learning. Utilising implicitly collected user models, the application performs neural text generation to create typing tests that specifically target pitfalls in the user's typing ability.
 
@@ -8,33 +8,33 @@ TypeTutor is an adaptive touch typing tutor based on the philosophy of mastery l
 
 1. Python3 (Note: ensure you have python mapped to the python3 environment variable)
 2. NumPy
-3. Flask (Note: ensure 1.1.1 is the version of Flask is being used)
-4. Bcrypt (Note: ensure 1.1.1 is the version of Bcrypt is being used)
+3. Flask (Note: ensure 1.1.1 is the version of Flask being used)
+4. Bcrypt (Note: ensure 1.1.1 is the version of Bcrypt being used)
 5. Keras (Note: ensure you are using a TensorFlow backend and 2.4.3 is the version of Keras used)
-6. Tensorflow (ensure 2.4.1 is the version of Tensorflow learn is being used)
+6. Tensorflow (ensure 2.4.1 is the version of Tensorflow learn being used)
 7. pip (Note: ensure you have pip mapped to the pip3 environment variable)
 8. npm
 9. Node
 10. React
 
-# Install the Projects dependencies
+## Install Dependencies
 
 Backend
 
-1. To Install the project dependencies for the backend change directory into type-tutor-backend of the downloaded project
+1. To install the project dependencies for the backend, change directory into type-tutor-backend of the downloaded project
 2. run the command "pip3 install -r requirements.txt"
 
 Frontend
 
-1. To Install the project dependencies for the frontend change directory into type-tutor-ui of the downloaded project
+1. To install the project dependencies for the frontend change directory into type-tutor-ui of the downloaded project
 2. run the command "npm install"
 
-# Running the Project
+## Running The Project
 
-The following steps detail how to run the Adaptive Applications Project:
+The following steps detail how to run the project:
 
 1. Use the cd command in order to navigate to the "type-tutor-ui" directory of the downloaded project
-2. run the command "npm start"
+2. Run the command "npm start"
 3. Open up a new terminal instance and use the cd command in order to navigate to the "type-tutor-backend" directory of the downloaded project
 4. Run the command "bash run.sh" or run the commands in the script individually
 
