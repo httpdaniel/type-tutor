@@ -20,7 +20,7 @@ function Navbar() {
     setJwt(localStorage.getItem('jwt'));
     localStorage.removeItem('email');
     setJwt(localStorage.getItem('email'));
-    window.location.href = '/';
+    window.location.href = '/login';
   }
 
   if (jwt) {
@@ -31,7 +31,7 @@ function Navbar() {
             <Typography variant="h3" className="navbar__title">
               TypeTutor
             </Typography>
-            <Typography variant="h6" className="navbar__title" style={{ marginLeft: '30px' }}>
+            <Typography variant="h6" className="navbar__typist" style={{ marginLeft: '30px' }}>
               Typing as:
               <br />
               { email }
@@ -48,11 +48,11 @@ function Navbar() {
                 Profile
               </Typography>
             </Link>
-            <Link to="/visualization" style={{ textDecoration: 'none' }}>
+            {/* <Link to="/visualization" style={{ textDecoration: 'none' }}>
               <Typography variant="h6" className="navbar__link">
                 Statistics
               </Typography>
-            </Link>
+            </Link> */}
             <button type="button" onClick={() => handleLogout()} style={{ textDecoration: 'none', border: 'none', cursor: 'pointer' }}>
               <Typography variant="h6" className="navbar__link">
                 Logout
@@ -78,11 +78,16 @@ function Navbar() {
               Home
             </Typography>
           </Link>
-          <Link to="/visualization" style={{ textDecoration: 'none' }}>
+          {/* <Link to="/profile" style={{ textDecoration: 'none' }}>
+            <Typography variant="h6" className="navbar__link">
+              Profile
+            </Typography>
+          </Link> */}
+          {/* <Link to="/visualization" style={{ textDecoration: 'none' }}>
             <Typography variant="h6" className="navbar__link">
               Statistics
             </Typography>
-          </Link>
+          </Link> */}
           <Link to="/login" style={{ textDecoration: 'none' }}>
             <Typography variant="h6" className="navbar__link">
               Login

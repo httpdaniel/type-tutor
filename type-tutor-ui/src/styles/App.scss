@@ -9,7 +9,7 @@ $secondary-text: #b2b2b2;
 
 body {
   height: 100%;
-  background-color: #eeeeee;
+  background-color: $bg-color !important;
 }
 
 .App {
@@ -30,6 +30,10 @@ body {
     justify-content: flex-start;
     .navbar__title {
       color: $text-color;
+    }
+    .navbar__typist {
+      color: $text-color;
+      font-size: 12px;
     }
   }
   .navbar__right {
@@ -54,7 +58,7 @@ body {
   justify-content: center;
   background-color: $bg-color;
   .main__body {
-    width: 50vw;
+    width: 66vw;
   }
   .main__text {
     height: 20vh;
@@ -62,8 +66,10 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    width: 100%;
     .out__of__focus {
       z-index: 999;
+      position: absolute;
       .fa-mouse-pointer {
         padding-right: 10px;
       }
@@ -79,6 +85,7 @@ body {
       #words__input {
         width: 100%;
         height: auto;
+        overflow: hidden;
       }
     }
     #words.blurred {
@@ -104,6 +111,11 @@ body {
     flex-direction: row;
     align-items: center;
   }
+  .statbox__bottom {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
   .keyset__box__open {
     height: 25px;
     width: 25px;
@@ -113,6 +125,38 @@ body {
     justify-content: center;
     margin-left: 1px;
     margin-right: 1px;
+    margin-top: 8px;
+    margin-bottom: 4px;
+    color: rgb(68, 68, 68);
+    display: flex;
+    flex-direction: column;
+  }
+  .keyset__box__unmastered {
+    height: 25px;
+    width: 25px;
+    background-color: rgb(202, 86, 86);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-left: 1px;
+    margin-right: 1px;
+    margin-top: 8px;
+    margin-bottom: 4px;
+    color: rgb(68, 68, 68);
+    display: flex;
+    flex-direction: column;
+  }
+  .keyset__box__current {
+    height: 25px;
+    width: 25px;
+    background-color: rgb(179, 179, 179);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-left: 1px;
+    margin-right: 1px;
+    margin-top: 8px;
+    margin-bottom: 4px;
     color: rgb(68, 68, 68);
     display: flex;
     flex-direction: column;
@@ -126,6 +170,8 @@ body {
     justify-content: center;
     margin-left: 1px;
     margin-right: 1px;
+    margin-top: 8px;
+    margin-bottom: 4px;
     color: rgb(68, 68, 68);
     display: flex;
     flex-direction: column;
@@ -140,6 +186,11 @@ body {
   // max-width: 850px;
   // height: 100%;
   // width: 100%;
+}
+
+.stat__span {
+  padding-right: 10px;
+  padding-left: 5px;
 }
 
 .chart-container {
@@ -160,3 +211,34 @@ body {
 //   padding-left: 100px;
 //   padding-top:20px;
 // }
+
+.loading__screen {
+  pointer-events: none;
+  background-color: aqua;
+  position: absolute;
+  width: 100% !important;
+  height: 100% !important;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0) 10%,
+    $bg-color 10%
+  );
+  overflow: hidden;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  .loader {
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    justify-items: center;
+    #loading__text {
+      color: $text-color;
+      font-size: 16px;
+      font-weight: 10;
+    }
+  }
+}

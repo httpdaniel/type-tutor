@@ -4,7 +4,7 @@ import KeysetBox from './KeysetBox';
 import '../styles/App.scss';
 
 function Stats(props) {
-  const { wordsperminute, numerrors, accuracyscore, keyset } = props;
+  const { wordsperminute, numerrors, accuracyscore, keyset, notmastered, current } = props;
 
   const [speed, setSpeed] = useState(0);
   const [speedChange, setSpeedChange] = useState(1.2);
@@ -20,43 +20,53 @@ function Stats(props) {
 
   const [currentKey, setCurrentKey] = useState('');
 
+  let firstLesson = false;
+
   const alphabet = ['E', 'A', 'R', 'I', 'O', 'T', 'N', 'S', 'L', 'C', 'U', 'D', 'P', 'M', 'H', 'G', 'B', 'F', 'Y', 'W', 'K', 'V', 'X', 'Z', 'J', 'Q'];
 
-  for(let i = 0; i<alphabet.length; i++) {
-    const open = keyset.includes(alphabet[i]);
-    keybox.push(<KeysetBox keys={[alphabet[i], open]}></KeysetBox>)
+  if (notmastered.toString() === ['E', 'A', 'R', 'I', 'O'].toString()) {
+    firstLesson = true;
+  }
+
+  if (firstLesson === true) {
+    for(let i = 0; i<alphabet.length; i++) {
+      const open = keyset.includes(alphabet[i]);
+      const unmastered = notmastered.includes(alphabet[i]);
+      const curr = ['E', 'A', 'R', 'I', 'O', 'T'].includes(alphabet[i]);
+      keybox.push(<KeysetBox key={i} current={curr} keys={[alphabet[i], false]} unmastered={false}></KeysetBox>)
+    }
+  } else {
+    for(let i = 0; i<alphabet.length; i++) {
+      const open = keyset.includes(alphabet[i]);
+      const unmastered = notmastered.includes(alphabet[i]);
+      const curr = alphabet[i] === current;
+      keybox.push(<KeysetBox key={i} current={curr} keys={[alphabet[i], open]} unmastered={unmastered} first={firstLesson}></KeysetBox>)
+    }
   }
 
   return (
     <div className="statbox">
       <div className="statbox__top">
         Speed:
-        <span>
+        <span className="stat__span">
           {wordsperminute}
-          (↑+
+          {/* (↑+
           {speedChange}
-          )
+          ) */}
         </span>
         Errors:
-        <span>
+        <span className="stat__span">
           {numerrors}
-          (↑+
+          {/* (↑+
           {errorsChange}
-          )
+          ) */}
         </span>
         Accuracy:
-        <span>
+        <span className="stat__span">
           {accuracyscore}%
-          (↑+
+          {/* (↑+
           {scoreChange}
-          )
-        </span>
-        Score:
-        <span>
-          {score}
-          (↑+
-          {scoreChange}
-          )
+          ) */}
         </span>
       </div>
       <div className="statbox__middle">
@@ -64,9 +74,7 @@ function Stats(props) {
         {keybox}
       </div>
       <div className="statbox__bottom">
-        Current Key:
-        {' '}
-        {currentKey}
+        Current Key: {firstLesson ? " " : <KeysetBox keys={[current, false]} unmastered={false} current={true}></KeysetBox>}
       </div>
     </div>
   );

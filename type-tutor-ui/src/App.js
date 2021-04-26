@@ -23,7 +23,7 @@ function App() {
           <Route path="/delete_account" component={DeleteAccount} />
           <Route path="/profile" component={Profile} />
           <Route path="/" exact component={MainPage} />
-          <Route path="/visualization" exact component={Visualization} />
+          {/* <Route path="/visualization" exact component={Visualization} /> */}
         </Switch>
       </div>
     </Router>

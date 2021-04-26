@@ -22,5 +22,9 @@ module.exports = {
     'no-return-assign': 'off',
     'no-plusplus': 'off',
     'object-shorthand': 'off',
+    'no-continue': 'off',
+    'no-use-before-define': 'off',
+    'quote-props': 'off',
+    'no-nested-ternary': 'off',
   },
 };
