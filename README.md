@@ -1,6 +1,6 @@
 # Type Tutor
-
-![Logo](type-tutor-ui/src/assets/logos/TypeTutor_Logo_Transparent.png?raw=true)
+<!-- ![Logo](type-tutor-ui/src/assets/logos/TypeTutor_Logo_Transparent.png?raw=true) -->
+<img src="https://github.com/httpdaniel/type-tutor/blob/main/type-tutor-ui/src/assets/logos/TypeTutor_Logo_Transparent.png" width="400">
 
 TypeTutor is an adaptive touch typing tutor based on the philosophy of mastery learning. Utilising implicitly collected user models, the application performs neural text generation to create typing tests that specifically target pitfalls in the user's typing ability.
 
